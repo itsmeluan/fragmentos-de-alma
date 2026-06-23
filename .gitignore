@@ -1,0 +1,37 @@
+# ── Expo / React Native ──────────────────────────────────────────────────────
+app/fragmentos-de-alma/node_modules/
+app/fragmentos-de-alma/.expo/
+app/fragmentos-de-alma/dist/
+app/fragmentos-de-alma/web-build/
+app/fragmentos-de-alma/expo-env.d.ts
+app/fragmentos-de-alma/.metro-health-check*
+app/fragmentos-de-alma/.kotlin/
+app/fragmentos-de-alma/ios/
+app/fragmentos-de-alma/android/
+
+# ── Variáveis de ambiente (chaves Supabase — nunca commitar) ─────────────────
+.env
+.env.local
+app/fragmentos-de-alma/.env
+app/fragmentos-de-alma/.env.local
+app/fragmentos-de-alma/.env*.local
+
+# ── Certificados e chaves ─────────────────────────────────────────────────────
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# ── TypeScript ────────────────────────────────────────────────────────────────
+*.tsbuildinfo
