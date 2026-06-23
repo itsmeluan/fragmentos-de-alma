@@ -35,12 +35,11 @@ export interface Genome {
   mutations: MutationGene[]
 }
 
-// ── Stubs temporários ────────────────────────────────────────────────────────
-// VisualParams e HeroSkills pertencem a sistemas ainda não implementados.
-// Substituir pelos imports reais quando os passos abaixo forem feitos:
-//   import type { VisualParams } from '../visual/types'   (Passo 8 — doc 02)
-//   import type { HeroSkills } from '../skills/types'     (Passo 10 — doc 03)
-export type VisualParams = unknown
+// VisualParams — sistema visual procedural (doc 02, Passo 8)
+import type { VisualParams } from '../visual/types'
+export type { VisualParams }
+
+// HeroSkills — stub até Passo 10 (doc 03 — sistema de habilidades)
 export type HeroSkills = unknown
 
 export interface Hero {

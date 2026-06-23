@@ -144,14 +144,29 @@ para não duplicar esses helpers entre `generator.ts` (Passo 5) e `fusion.ts`
 
 ---
 
-## Próximo Passo: Passo 8 — Gerador visual procedural
+**Passo 8 — Gerador visual procedural** ✅ concluído em 2026-06-23
 
-Ler `docs/02_sistema_visual.md` antes de implementar.
+Arquivos criados/modificados:
+- `src/systems/visual/types.ts` — `VisualParams` e 6 sub-interfaces (uma por camada)
+- `src/systems/visual/generator.ts` — `generateVisualParams(genome, seed): VisualParams`
+- `src/systems/genes/types.ts` — stub `VisualParams = unknown` substituído por `import/re-export` real
+- `src/utils/random.ts` — `makeSeededRng` adicionado (D15)
+- 38 novos testes (generator.test.ts + 3 novos em random.test.ts) → 82 total; `tsc` limpo
 
-Criar `src/systems/visual/generator.ts` (e `src/systems/visual/types.ts`) —
-`generateVisualParams(genome): VisualParams`. Substituir o stub `unknown` de
-`Hero.visualParams` em `genes/types.ts` pelo tipo real de `../visual/types`.
-Cobrir com testes unitários.
+> **D15/D16:** `makeSeededRng` em `utils/random.ts` (reutilizável pelo nameGenerator no Passo 9).
+> Paleta híbrida tem prioridade sobre a base; híbrido desconhecido cai para cor da afinidade base.
+> Ver `docs/09_roadmap_mvp.md` § Decisões de Implementação (D15–D16).
+
+---
+
+## Próximo Passo: Passo 9 — Gerador de nomes
+
+Ler `docs/02_sistema_visual.md` (seção "Geração de Nome") antes de implementar.
+
+Criar `src/utils/nameGenerator.ts` — `generateName(genome, seed): string`.
+Formato: `[Prefixo de ORIGEM] + [Raiz de NÚCLEO] + [Sufixo de AFINIDADE]`.
+Mutações adicionam epítetos (TRANSCENDÊNCIA, CAOS, ANCESTRAL). Usar
+`makeSeededRng` para determinismo. Cobrir com testes unitários.
 
 ---
 
@@ -167,7 +182,7 @@ Cobrir com testes unitários.
 - [x] Passo 5 — `src/systems/genes/generator.ts` (ler doc 01 antes)
 - [x] Passo 6 — `src/systems/genes/fusion.ts` (ler doc 01 antes)
 - [x] Passo 7 — `src/systems/genes/rarity.ts` (ler doc 01 antes)
-- [ ] Passo 8 — `src/systems/visual/generator.ts` (ler doc 02 antes)
+- [x] Passo 8 — `src/systems/visual/generator.ts` (ler doc 02 antes)
 - [ ] Passo 9 — `src/utils/nameGenerator.ts` (ler doc 02 antes)
 - [ ] Passo 10 — `src/systems/skills/generator.ts` (ler doc 03 antes)
 - [ ] Passo 11 — Telas: Login → Registro → Coleção → Detalhe → Fusão → Revelação

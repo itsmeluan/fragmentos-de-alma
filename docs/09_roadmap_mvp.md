@@ -81,6 +81,8 @@ Jest + React Native Testing Library (testes)
 | D12 | 6 | **ANCESTRAL/CAOS/TRANSCENDÊNCIA** ficam fora do motor de fusão de genoma | Dependem de contexto fora do genoma (gerações, evento global de eclipse, raridade dos pais) — pertencem ao orquestrador de fusão de nível superior |
 | D13 | 6 | Adicionado par de afinidades opostas **Vazio↔Éter** (doc 01 e `OPPOSITE_AFFINITIES`) | Decisão do usuário: antes só 6 das 8 afinidades tinham oposto; Vazio/Éter ficavam sem poder gerar INVERSO. Agora as 8 afinidades formam 4 pares |
 | D14 | 7 | `calculateRarity` recebe param opcional `isUnique = false`; sem ele, 'unico' nunca é retornado | 'Único' exige condições externas de evento (não deriváveis só do genoma). O orquestrador de nível superior passará `true` quando aplicável. Soma máxima com atributos base é 600 (6 × 100), então a faixa lendário (>750) só via bônus futuros; TRANSCENDENCIA é o caminho primário atual |
+| D15 | 8 | `makeSeededRng` extraído para `src/utils/random.ts` (RNG determinístico via hash de string) | Protocolo de Unicidade (doc 02) exige que o mesmo seed produza sempre o mesmo visual. O utilitário será compartilhado com `nameGenerator.ts` (Passo 9) — o doc 02 especifica que nomes também derivam do genoma + seed |
+| D16 | 8 | `VisualParams` em `genes/types.ts` substituiu o stub `unknown` por `import/re-export` de `../visual/types` | Remove a dependência circular (visual não importa genes; genes re-exportam visual) e mantém o contrato de `Hero.visualParams` sem quebrar imports existentes |
 
 ---
 
