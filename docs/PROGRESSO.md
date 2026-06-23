@@ -107,24 +107,15 @@ Todos os arquivos `placeholder` estão vazios — prontos para implementação n
 
 ---
 
-## Próximo Passo: Passo 3 — Configurar Supabase
+## Próximo Passo: Passo 4 — Tipos TypeScript do sistema de genes
 
-**O que fazer:**
+Ler `docs/01_sistema_de_genes.md` antes de implementar.
 
-1. Criar projeto em [supabase.com](https://supabase.com) (se ainda não existir)
-2. No painel do Supabase → SQL Editor, executar as **5 migrations na ordem**:
-   - `001` — tabela `players` (perfil + recursos + reputação de facções)
-   - `002` — tabela `heroes` (genoma, visual, habilidades, linhagem)
-   - `003` — tabela `fragments` (genoma parcial pré-fusão)
-   - `004` — tabelas `dungeon_sessions` e `battle_logs`
-   - `005` — tabelas `emergent_discoveries`, `player_achievements`, `world_rules`
-   - O SQL completo de cada migration está em `docs/09_roadmap_mvp.md` (seção "Banco de Dados — Schema Completo")
-3. Preencher `src/lib/supabase.ts` com o conteúdo do doc 09 (seção "0.2 — Configurar Supabase"), inserindo as variáveis de ambiente reais do projeto Supabase:
-   - `EXPO_PUBLIC_SUPABASE_URL` — URL do projeto (Project Settings → API)
-   - `EXPO_PUBLIC_SUPABASE_ANON_KEY` — anon key pública (Project Settings → API)
-4. Criar arquivo `.env` na raiz de `app/fragmentos-de-alma/` com essas duas variáveis (este arquivo está no `.gitignore`)
+Criar `src/systems/genes/types.ts` com todos os tipos do sistema de genes:
+`Origin`, `Affinity`, `Core`, `MutationGene`, `Rarity`, `EssenceGenes`,
+`AttributeGenes`, `Genome`, `Hero`.
 
-**Critério de conclusão do Passo 3:** `src/lib/supabase.ts` exporta o cliente configurado e as migrations foram executadas sem erro no painel do Supabase.
+**Critério de conclusão:** arquivo exporta todos os tipos sem erros de TypeScript.
 
 ---
 
@@ -133,7 +124,7 @@ Todos os arquivos `placeholder` estão vazios — prontos para implementação n
 ### Fase 0 — Fundação Técnica
 - [x] Passo 1 — Inicializar projeto Expo + instalar dependências
 - [x] Passo 2 — Criar estrutura de pastas + theme.ts + constants.ts
-- [ ] Passo 3 — Configurar Supabase (migrations + supabase.ts) ← **PRÓXIMO**
+- [x] Passo 3 — Configurar Supabase (migrations + supabase.ts)
 
 ### Fase 1 — Núcleo Colecionável
 - [ ] Passo 4 — `src/systems/genes/types.ts` (ler doc 01 antes)
