@@ -51,16 +51,35 @@ Surgem espontaneamente durante fusões, com probabilidade baseada em condições
 | `CAOS` | Fusão em momento de eclipse (evento global) | Todos os genes rerolam parcialmente |
 | `TRANSCENDÊNCIA` | Fusão de dois lendários | Desbloqueia tier acima do lendário |
 
-> **Pendência de design (aberta no Passo 6):** a tabela define a *condição* de
-> surgimento de cada mutação, mas não a *probabilidade*. O motor de fusão
-> (`src/systems/genes/fusion.ts`) implementa apenas o que está especificado:
-> herança das mutações dos pais (50% cada) e a mutação rara nova
-> (`FUSION_INHERITANCE.mutationRareChance` = 0,5%). **INVERSO** (afinidades
-> opostas) e **ESPELHO** (mesma origem) têm a condição *detectada* mas estão
-> inativos até a probabilidade ser definida aqui. **ANCESTRAL/CAOS/TRANSCENDÊNCIA**
-> dependem de contexto fora do genoma (gerações, evento de eclipse, raridade dos
-> pais) e serão tratados pelo orquestrador de fusão de nível superior, não pelo
-> motor de genoma. Ver `docs/09_roadmap_mvp.md` § Decisões de Implementação (D11–D12).
+### Probabilidades de surgimento das mutações condicionais (resolvido no Passo 6)
+
+A tabela define a *condição*; as *probabilidades* foram decididas assim
+(implementadas em `src/systems/genes/fusion.ts`, constantes em `FUSION_INHERITANCE`):
+
+| Mutação | Condição | Probabilidade |
+|---|---|---|
+| `INVERSO` | Pais com afinidades **opostas** | **30%** (`mutationInversoChance`) |
+| `ESPELHO` | Pais de **mesma origem** | **20%** (`mutationEspelhoChance`) |
+
+**Princípio de design:** estas mutações são *gatilhadas por escolha do jogador*
+(fundir opostos / mesma origem deliberadamente), diferente da mutação rara
+aleatória (0,5%). Por isso a chance é generosa o bastante para a "receita" ser
+descoberta sem tabela e recompensar a intenção, mas não garantida — preservando
+a especialidade e evitando inflação de raridade.
+
+**Pares de afinidades opostas (4 pares, cobrindo as 8 afinidades):**
+Fogo↔Água · Luz↔Sombra · Terra↔Vento · **Vazio↔Éter** *(este último adicionado no
+Passo 6 para que toda afinidade tenha um oposto — ver D13)*.
+
+**ANCESTRAL / CAOS / TRANSCENDÊNCIA** dependem de contexto fora do genoma
+(gerações, evento de eclipse, raridade dos pais) e serão tratados pelo
+orquestrador de fusão de nível superior, não pelo motor de genoma (ver D12).
+
+> Evolução futura possível: *pity escalonado* (a chance sobe a cada fusão
+> deliberada sem sucesso, resetando ao acertar), alinhado à filosofia
+> anti-frustração já presente no schema (`bad_luck_counter`). Não implementado.
+
+Ver `docs/09_roadmap_mvp.md` § Decisões de Implementação (D11–D13).
 
 ---
 

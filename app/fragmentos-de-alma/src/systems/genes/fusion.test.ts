@@ -96,6 +96,48 @@ describe('fuseGenomes', () => {
     expect(child.mutations).toEqual([])
   })
 
+  describe('mutações condicionais (INVERSO / ESPELHO)', () => {
+    it('INVERSO surge com afinidades opostas quando o sorteio passa (<30%)', () => {
+      jest.spyOn(Math, 'random').mockReturnValue(0.1)
+      const a = genome({ origin: 'Abissal', affinity: 'Fogo' })
+      const b = genome({ origin: 'Celestial', affinity: 'Água' })
+      const { genome: child } = fuseGenomes({ parentA: a, parentB: b, seed: 's' })
+      expect(child.mutations).toEqual(['INVERSO'])
+    })
+
+    it('INVERSO não surge quando o sorteio falha (>30%)', () => {
+      jest.spyOn(Math, 'random').mockReturnValue(0.5)
+      const a = genome({ origin: 'Abissal', affinity: 'Fogo' })
+      const b = genome({ origin: 'Celestial', affinity: 'Água' })
+      const { genome: child } = fuseGenomes({ parentA: a, parentB: b, seed: 's' })
+      expect(child.mutations).toEqual([])
+    })
+
+    it('ESPELHO surge com mesma origem quando o sorteio passa (<20%)', () => {
+      jest.spyOn(Math, 'random').mockReturnValue(0.1)
+      const a = genome({ origin: 'Abissal', affinity: 'Fogo' })
+      const b = genome({ origin: 'Abissal', affinity: 'Terra' })
+      const { genome: child } = fuseGenomes({ parentA: a, parentB: b, seed: 's' })
+      expect(child.mutations).toEqual(['ESPELHO'])
+    })
+
+    it('Vazio↔Éter conta como afinidades opostas (gera INVERSO)', () => {
+      jest.spyOn(Math, 'random').mockReturnValue(0.1)
+      const a = genome({ origin: 'Abissal', affinity: 'Vazio' })
+      const b = genome({ origin: 'Celestial', affinity: 'Éter' })
+      const { genome: child } = fuseGenomes({ parentA: a, parentB: b, seed: 's' })
+      expect(child.mutations).toContain('INVERSO')
+    })
+
+    it('opostos + mesma origem podem gerar INVERSO e ESPELHO juntos', () => {
+      jest.spyOn(Math, 'random').mockReturnValue(0.1)
+      const a = genome({ origin: 'Abissal', affinity: 'Fogo' })
+      const b = genome({ origin: 'Abissal', affinity: 'Água' })
+      const { genome: child } = fuseGenomes({ parentA: a, parentB: b, seed: 's' })
+      expect(child.mutations).toEqual(['INVERSO', 'ESPELHO'])
+    })
+  })
+
   describe('injeção de gene (Cristal de Essência)', () => {
     it('injeta atributo sobrescrevendo o blend', () => {
       const { genome: child, inheritanceLog } = fuseGenomes({

@@ -77,8 +77,9 @@ Jest + React Native Testing Library (testes)
 | D8 | 5 | `randomFrom`/`randomInt` extraídos para **`src/utils/random.ts`** (a referência os in-lina em `generator.ts` e `fusion.ts`) | Evita duplicação entre os sistemas; é o arquivo já reservado para "aleatoriedade controlada" |
 | D9 | 5 | `weightedOriginForBiome` (em `generator.ts`) recebe **guarda para bioma desconhecido** → fallback p/ Origem aleatória | Correção de bug latente da referência (retornava `undefined`) |
 | D10 | 6 | `fusion.ts`: corrigido o log de herança da **afinidade** (a referência re-sorteava a fonte em vez de registrar o pai realmente escolhido) e **`applyInjectedGene`** foi implementada (citada mas indefinida na referência) | Fidelidade e consistência do log de herança ("legível ao jogador" — doc 01) |
-| D11 | 6 | Mutações condicionais **INVERSO** (afinidades opostas) e **ESPELHO** (mesma origem) **não implementadas** — apenas detecção da condição, como TODO | doc 01 define a condição mas **não a probabilidade** de surgimento; não inventar número de balanço (decisão de design pendente) |
+| D11 | 6 | Mutações condicionais **INVERSO** = 30% (afinidades opostas) e **ESPELHO** = 20% (mesma origem), implementadas (`mutationInversoChance`/`mutationEspelhoChance`) | Decisão do usuário: são gatilhadas por escolha do jogador, então recompensam a intenção (descobríveis, não garantidas) sem inflar raridade. Substitui a pendência original |
 | D12 | 6 | **ANCESTRAL/CAOS/TRANSCENDÊNCIA** ficam fora do motor de fusão de genoma | Dependem de contexto fora do genoma (gerações, evento global de eclipse, raridade dos pais) — pertencem ao orquestrador de fusão de nível superior |
+| D13 | 6 | Adicionado par de afinidades opostas **Vazio↔Éter** (doc 01 e `OPPOSITE_AFFINITIES`) | Decisão do usuário: antes só 6 das 8 afinidades tinham oposto; Vazio/Éter ficavam sem poder gerar INVERSO. Agora as 8 afinidades formam 4 pares |
 
 ---
 
@@ -570,6 +571,9 @@ export const FUSION_INHERITANCE = {
   mutationPositiveChance: 0.05,
   mutationNegativeChance: 0.02,
   mutationRareChance: 0.005,
+  // Mutações condicionais — gatilhadas por escolha do jogador (ver doc 01, D13)
+  mutationInversoChance: 0.3, // afinidades opostas
+  mutationEspelhoChance: 0.2, // mesma origem
 } as const
 
 // BATALHA — ver doc 06_sistema_de_batalha.md

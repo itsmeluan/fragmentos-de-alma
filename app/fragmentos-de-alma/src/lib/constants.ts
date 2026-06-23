@@ -32,6 +32,9 @@ export const FUSION_INHERITANCE = {
   mutationPositiveChance: 0.05,
   mutationNegativeChance: 0.02,
   mutationRareChance: 0.005,
+  // Mutações condicionais — gatilhadas por escolha do jogador (ver doc 01)
+  mutationInversoChance: 0.3, // afinidades opostas
+  mutationEspelhoChance: 0.2, // mesma origem
 } as const
 
 // BATALHA — ver doc 06_sistema_de_batalha.md

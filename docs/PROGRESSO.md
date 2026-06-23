@@ -136,9 +136,9 @@ afinidade híbrida, TRANSCENDÊNCIA). Referência no doc 09 (seção 1.1 →
 `rarity.ts`), incluindo `getRarityColor(rarity)`. Cobrir todos os tiers com
 testes unitários.
 
-> **Pendência aberta (Passo 6 — ver doc 01 e D11):** as probabilidades de
-> surgimento de INVERSO/ESPELHO não estão definidas no design. Decidir antes de
-> ativá-las no motor de fusão.
+> **Resolvido (Passo 6 — ver doc 01 e D11/D13):** INVERSO = 30% (afinidades
+> opostas) e ESPELHO = 20% (mesma origem), já ativas e testadas. Par Vazio↔Éter
+> adicionado. *Pity escalonado* fica como evolução futura possível (não implementado).
 
 > **Nota técnica (Passo 4):** os tipos `VisualParams` e `HeroSkills` em
 > `genes/types.ts` ainda são stubs `unknown`. Substituir pelos imports reais

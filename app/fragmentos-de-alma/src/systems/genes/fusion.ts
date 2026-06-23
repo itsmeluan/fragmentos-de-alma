@@ -21,14 +21,17 @@ const ATTRIBUTE_KEYS = [
   'aura',
 ] as const
 
-// Afinidades opostas — condição da mutação INVERSO (ver doc 01)
-const OPPOSITE_AFFINITIES: Partial<Record<Affinity, Affinity>> = {
+// Afinidades opostas — condição da mutação INVERSO (ver doc 01).
+// As 8 afinidades formam 4 pares opostos (Vazio↔Éter adicionado — ver D13).
+const OPPOSITE_AFFINITIES: Record<Affinity, Affinity> = {
   Fogo: 'Água',
   Água: 'Fogo',
   Luz: 'Sombra',
   Sombra: 'Luz',
   Terra: 'Vento',
   Vento: 'Terra',
+  Vazio: 'Éter',
+  Éter: 'Vazio',
 }
 
 export interface InjectedGene {
@@ -199,7 +202,7 @@ function calculateMutations(
   parentB: Genome,
   log: InheritanceLog[]
 ): MutationGene[] {
-  const { mutationRareChance } = FUSION_INHERITANCE
+  const { mutationRareChance, mutationInversoChance, mutationEspelhoChance } = FUSION_INHERITANCE
   const mutations: MutationGene[] = []
 
   const add = (m: MutationGene, source: InheritanceLog['source']) => {
@@ -215,17 +218,18 @@ function calculateMutations(
     if (Math.random() < 0.5) mutations.push(m)
   }
 
-  // TODO(design): mutações condicionais INVERSO (afinidades opostas) e ESPELHO
-  // (mesma origem) têm a CONDIÇÃO definida no doc 01, mas a PROBABILIDADE de
-  // surgimento não está especificada em nenhum doc. Não implementadas aqui para
-  // não inventar números de balanço — definir a probabilidade no design e então
-  // ativar. A detecção da condição já está pronta:
-  //   const opostos = OPPOSITE_AFFINITIES[parentA.essence.affinity] === parentB.essence.affinity
-  //   const gemeos  = parentA.essence.origin === parentB.essence.origin
-  // (ANCESTRAL, CAOS e TRANSCENDÊNCIA dependem de contexto fora do genoma —
-  //  gerações, evento global, raridade dos pais — e pertencem ao orquestrador
-  //  de fusão de nível superior, não a este motor.)
-  void OPPOSITE_AFFINITIES
+  // Mutações condicionais — gatilhadas por escolha do jogador (ver doc 01, D11/D13).
+  // INVERSO: pais com afinidades opostas.
+  if (OPPOSITE_AFFINITIES[parentA.essence.affinity] === parentB.essence.affinity) {
+    if (Math.random() < mutationInversoChance) add('INVERSO', 'mutation')
+  }
+  // ESPELHO: pais de mesma origem ("gêmeos").
+  if (parentA.essence.origin === parentB.essence.origin) {
+    if (Math.random() < mutationEspelhoChance) add('ESPELHO', 'mutation')
+  }
+  // ANCESTRAL, CAOS e TRANSCENDÊNCIA dependem de contexto fora do genoma
+  // (gerações, evento de eclipse, raridade dos pais) e pertencem ao orquestrador
+  // de fusão de nível superior, não a este motor (ver D12).
 
   // Mutação rara completamente nova (ver doc 01)
   if (Math.random() < mutationRareChance) {
