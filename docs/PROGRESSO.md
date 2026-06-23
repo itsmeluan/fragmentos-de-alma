@@ -172,14 +172,26 @@ Arquivos criados/modificados:
 
 ---
 
-## Próximo Passo: Passo 10 — Sistema de habilidades
+**Passo 10 — Sistema de habilidades** ✅ concluído em 2026-06-23
 
-Ler `docs/03_sistema_de_habilidades.md` antes de implementar.
+Arquivos criados/modificados:
+- `src/systems/skills/types.ts` — `HeroSkills`, `Skill`, 4 sub-interfaces (Trigger/Effect/Modifier/Condition)
+- `src/systems/skills/generator.ts` — `generateSkills(genome, rarity, seed): HeroSkills`; contagem por raridade; pools ponderados por gene; 7 condições emergentes; nomes procedurais
+- `src/systems/genes/types.ts` — stub `HeroSkills = unknown` substituído por import/re-export real (D18)
+- 24 testes (generator.test.ts) → 122 total (7 suites); `tsc` limpo
 
-Criar `src/systems/skills/types.ts` e `src/systems/skills/generator.ts` —
-`generateSkills(genome): HeroSkills`. Substituir o stub `HeroSkills = unknown`
-em `genes/types.ts` pelo tipo real de `../skills/types`.
-Cobrir com testes unitários.
+> **D19:** Modificador M06 usa placeholder de afinidade até `resolver.ts` (Passo 12).
+> Ver `docs/09_roadmap_mvp.md` § Decisões de Implementação (D18–D19).
+
+---
+
+## Próximo Passo: Passo 11 — Telas
+
+Ler `docs/09_roadmap_mvp.md` (seção de referência das telas) e `docs/10_direcao_de_arte.md` antes de implementar.
+
+Implementar telas na ordem: Login → Registro → Coleção → Detalhe → Fusão → Revelação.
+Cada tela usa Expo Router, componentes de `src/components/`, estado de `src/store/`,
+queries de `src/hooks/`. Ver checklist de UI acessível (toque mínimo 48×48dp, sem `#FFFFFF`).
 
 ---
 
@@ -197,7 +209,7 @@ Cobrir com testes unitários.
 - [x] Passo 7 — `src/systems/genes/rarity.ts` (ler doc 01 antes)
 - [x] Passo 8 — `src/systems/visual/generator.ts` (ler doc 02 antes)
 - [x] Passo 9 — `src/utils/nameGenerator.ts` (ler doc 02 antes)
-- [ ] Passo 10 — `src/systems/skills/generator.ts` (ler doc 03 antes)
+- [x] Passo 10 — `src/systems/skills/generator.ts` (ler doc 03 antes)
 - [ ] Passo 11 — Telas: Login → Registro → Coleção → Detalhe → Fusão → Revelação
 
 ### Fase 2 — Núcleo de Batalha

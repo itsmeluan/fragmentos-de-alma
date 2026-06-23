@@ -84,6 +84,8 @@ Jest + React Native Testing Library (testes)
 | D15 | 8 | `makeSeededRng` extraído para `src/utils/random.ts` (RNG determinístico via hash de string) | Protocolo de Unicidade (doc 02) exige que o mesmo seed produza sempre o mesmo visual. O utilitário será compartilhado com `nameGenerator.ts` (Passo 9) — o doc 02 especifica que nomes também derivam do genoma + seed |
 | D16 | 8 | `VisualParams` em `genes/types.ts` substituiu o stub `unknown` por `import/re-export` de `../visual/types` | Remove a dependência circular (visual não importa genes; genes re-exportam visual) e mantém o contrato de `Hero.visualParams` sem quebrar imports existentes |
 | D17 | 9 | Epíteto de `ANCESTRAL` usa genéricos determinísticos; `ancestorName` é parâmetro opcional | O nome exato do ancestral exige contexto de linhagem (banco de dados) que pertence ao orquestrador de nível superior. A função pura aceita a injeção quando disponível |
+| D18 | 10 | `HeroSkills` em `genes/types.ts` substituiu stub `unknown` por `import/re-export` de `../skills/types` | Mesmo padrão de D16 (VisualParams); evita dependência circular |
+| D19 | 10 | Modificador M06 (efeito elemental secundário) usa `affinity === 'Éter' \|\| 'Vazio'` como placeholder | O doc 03 diz "AFINIDADE híbrida" mas `EssenceGenes.hybridAffinity` não é acessível sem refatoração do signature. Resolver quando o resolver.ts de batalha precisar do modificador real (Passo 12) |
 
 ---
 

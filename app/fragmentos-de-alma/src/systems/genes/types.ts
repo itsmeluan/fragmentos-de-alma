@@ -39,8 +39,9 @@ export interface Genome {
 import type { VisualParams } from '../visual/types'
 export type { VisualParams }
 
-// HeroSkills — stub até Passo 10 (doc 03 — sistema de habilidades)
-export type HeroSkills = unknown
+// HeroSkills — sistema de habilidades procedurais (doc 03, Passo 10)
+import type { HeroSkills } from '../skills/types'
+export type { HeroSkills }
 
 export interface Hero {
   id: string
