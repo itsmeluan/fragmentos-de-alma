@@ -107,22 +107,42 @@ Todos os arquivos `placeholder` estão vazios — prontos para implementação n
 
 ---
 
-## Próximo Passo: Passo 5 — Gerador de genoma
+## Infraestrutura de Testes (configurada no Passo 5)
 
-Ler `docs/01_sistema_de_genes.md` antes de implementar.
+Stack de testes documentada (Jest) foi configurada:
+- `jest-expo` (~56.0.5) + `jest` (29) + `@types/jest` + `@react-native/jest-preset`
+  (peer extraído para pacote próprio nas versões novas do RN) + `babel-preset-expo`
+- `babel.config.js` — preset `babel-preset-expo`
+- `jest.config.js` — preset `jest-expo`, `moduleNameMapper` para o alias `@/`
+- `tsconfig.json` — adicionado `paths: { "@/*": ["./src/*"] }` (alias `@` = `src`,
+  conforme os imports do doc 09)
+- Testes usam `import { describe, it, expect } from '@jest/globals'` (evita mexer
+  na config global de `types` do tsconfig e não afeta os tipos do app)
+- Rodar com `npm test` (na pasta `app/fragmentos-de-alma/`)
 
-Criar `src/systems/genes/generator.ts` — funções puras para gerar o genoma
-inicial de um fragmento (pré-fusão). Referência no doc 09 (seção 1.1 →
-`generator.ts`): `generateFragmentGenome(biomeOrigin?)`, com helpers
-`randomFrom`, `randomInt`, `weightedOriginForBiome`.
+`src/utils/random.ts` foi criado com `randomFrom` e `randomInt` (funções puras),
+para não duplicar esses helpers entre `generator.ts` (Passo 5) e `fusion.ts`
+(Passo 6) — a referência do doc 09 os in-lina em ambos.
+
+---
+
+## Próximo Passo: Passo 6 — Motor de fusão
+
+Ler `docs/01_sistema_de_genes.md` (seção "Mecânica de Herança") antes de implementar.
+
+Criar `src/systems/genes/fusion.ts` — funções puras de fusão de dois genomas.
+Referência no doc 09 (seção 1.1 → `fusion.ts`): `fuseGenomes(input)`, com
+`inheritEssenceGenes`, `inheritAttributeGenes`, `calculateMutations`,
+`createHybridAffinity`, e tipos `FusionInput`, `FusionResult`, `InheritanceLog`.
+Usar `randomFrom`/`randomInt` de `@/utils/random` e as constantes
+`FUSION_INHERITANCE` de `@/lib/constants`.
 
 > **Nota técnica (Passo 4):** os tipos `VisualParams` e `HeroSkills` em
-> `genes/types.ts` estão como stubs `unknown`. Substituir pelos imports reais
-> de `../visual/types` (Passo 8) e `../skills/types` (Passo 10) quando esses
-> sistemas existirem.
+> `genes/types.ts` ainda são stubs `unknown`. Substituir pelos imports reais
+> de `../visual/types` (Passo 8) e `../skills/types` (Passo 10).
 
-**Critério de conclusão:** funções puras geram genoma válido; testes unitários
-passam (`src/systems/` exige testes — ver CLAUDE.md).
+**Critério de conclusão:** `fuseGenomes` produz genoma válido a partir de dois
+pais; testes unitários cobrindo herança, blend, drift e mutações passam.
 
 ---
 
@@ -135,7 +155,7 @@ passam (`src/systems/` exige testes — ver CLAUDE.md).
 
 ### Fase 1 — Núcleo Colecionável
 - [x] Passo 4 — `src/systems/genes/types.ts` (ler doc 01 antes)
-- [ ] Passo 5 — `src/systems/genes/generator.ts` (ler doc 01 antes)
+- [x] Passo 5 — `src/systems/genes/generator.ts` (ler doc 01 antes)
 - [ ] Passo 6 — `src/systems/genes/fusion.ts` (ler doc 01 antes)
 - [ ] Passo 7 — `src/systems/genes/rarity.ts` (ler doc 01 antes)
 - [ ] Passo 8 — `src/systems/visual/generator.ts` (ler doc 02 antes)
