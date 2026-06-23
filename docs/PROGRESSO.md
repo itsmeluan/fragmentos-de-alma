@@ -126,23 +126,26 @@ para não duplicar esses helpers entre `generator.ts` (Passo 5) e `fusion.ts`
 
 ---
 
-## Próximo Passo: Passo 6 — Motor de fusão
+## Próximo Passo: Passo 7 — Calculador de raridade
 
-Ler `docs/01_sistema_de_genes.md` (seção "Mecânica de Herança") antes de implementar.
+Ler `docs/01_sistema_de_genes.md` (seção "Raridade Dinâmica") antes de implementar.
 
-Criar `src/systems/genes/fusion.ts` — funções puras de fusão de dois genomas.
-Referência no doc 09 (seção 1.1 → `fusion.ts`): `fuseGenomes(input)`, com
-`inheritEssenceGenes`, `inheritAttributeGenes`, `calculateMutations`,
-`createHybridAffinity`, e tipos `FusionInput`, `FusionResult`, `InheritanceLog`.
-Usar `randomFrom`/`randomInt` de `@/utils/random` e as constantes
-`FUSION_INHERITANCE` de `@/lib/constants`.
+Criar `src/systems/genes/rarity.ts` — função pura `calculateRarity(genome)` que
+classifica a raridade a partir do genoma (soma de atributos, nº de mutações,
+afinidade híbrida, TRANSCENDÊNCIA). Referência no doc 09 (seção 1.1 →
+`rarity.ts`), incluindo `getRarityColor(rarity)`. Cobrir todos os tiers com
+testes unitários.
+
+> **Pendência aberta (Passo 6 — ver doc 01 e D11):** as probabilidades de
+> surgimento de INVERSO/ESPELHO não estão definidas no design. Decidir antes de
+> ativá-las no motor de fusão.
 
 > **Nota técnica (Passo 4):** os tipos `VisualParams` e `HeroSkills` em
 > `genes/types.ts` ainda são stubs `unknown`. Substituir pelos imports reais
 > de `../visual/types` (Passo 8) e `../skills/types` (Passo 10).
 
-**Critério de conclusão:** `fuseGenomes` produz genoma válido a partir de dois
-pais; testes unitários cobrindo herança, blend, drift e mutações passam.
+**Critério de conclusão:** `calculateRarity` classifica corretamente cada tier;
+testes unitários passam; `tsc --noEmit` limpo.
 
 ---
 
@@ -156,7 +159,7 @@ pais; testes unitários cobrindo herança, blend, drift e mutações passam.
 ### Fase 1 — Núcleo Colecionável
 - [x] Passo 4 — `src/systems/genes/types.ts` (ler doc 01 antes)
 - [x] Passo 5 — `src/systems/genes/generator.ts` (ler doc 01 antes)
-- [ ] Passo 6 — `src/systems/genes/fusion.ts` (ler doc 01 antes)
+- [x] Passo 6 — `src/systems/genes/fusion.ts` (ler doc 01 antes)
 - [ ] Passo 7 — `src/systems/genes/rarity.ts` (ler doc 01 antes)
 - [ ] Passo 8 — `src/systems/visual/generator.ts` (ler doc 02 antes)
 - [ ] Passo 9 — `src/utils/nameGenerator.ts` (ler doc 02 antes)

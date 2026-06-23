@@ -28,15 +28,16 @@ Este documento é parte de um conjunto de 12 documentos de design. Antes de impl
 
 ### Frontend (Mobile)
 ```
-React Native 0.74+
-Expo SDK 51+
+React Native 0.85   (mínimo de design: 0.74+ — ver § Decisões de Implementação)
+Expo SDK 56         (mínimo de design: 51+  — ver § Decisões de Implementação)
 Expo Router (navegação baseada em arquivos)
-React Native Reanimated 3 (animações)
+React Native Reanimated (animações)
 React Native Gesture Handler (gestos e toque)
 React Native Skia (mapa de Solum e partículas — ver doc 11)
 Zustand (gerenciamento de estado global)
 TanStack Query (cache e sincronização de dados)
 ```
+> Ambiente real: Expo SDK 56, React Native 0.85, TypeScript 6, Node 25.
 
 ### Backend
 ```
@@ -56,6 +57,28 @@ Jest + React Native Testing Library (testes)
 - React Native + Expo: um único codebase para iOS e Android, sem necessidade de Mac para desenvolver inicialmente, comunidade grande, deploy simplificado
 - Supabase: banco de dados relacional robusto, autenticação pronta, sem gerenciar servidores, plano gratuito generoso para MVP
 - TypeScript: obrigatório para um projeto com sistemas complexos como genes e habilidades procedurais — evita erros de tipo que seriam difíceis de debugar
+
+---
+
+## Decisões de Implementação
+
+> Log vivo de decisões técnicas e desvios da referência deste documento.
+> Mantido em sincronia com `docs/PROGRESSO.md`. Cada entrada cita o passo.
+
+| # | Passo | Decisão | Motivo |
+|---|---|---|---|
+| D1 | 1 | Projeto inicializado com **Expo SDK 56** (RN 0.85, TS 6, Node 25), não 51+ | Versão corrente do `create-expo-app`; sem impacto no design |
+| D2 | 2 | `react-native-reanimated`, `react-native-gesture-handler` e `@shopify/react-native-skia` instalados com `--legacy-peer-deps` | Conflito transitivo de `react-dom` (Radix via `expo-router`); não afeta o runtime RN |
+| D3 | 2 | `@shopify/react-native-skia` e `@react-native-async-storage/async-storage` adicionados às dependências | Skia é exigido pelo mapa (doc 11); AsyncStorage é o storage de sessão do Supabase (seção 0.2) |
+| D4 | 3 | Migrations aplicadas via **Supabase CLI** (`supabase db push`); arquivos SQL versionados em `supabase/migrations/001–005` | CLI foi o caminho viável; chaves em `.env` (fora do git) |
+| D5 | 4 | `Hero.visualParams` e `Hero.skills` (em `genes/types.ts`) tipados como stubs `unknown` | Os sistemas visual (Passo 8) e de habilidades (Passo 10) ainda não existem; substituir pelos imports reais nesses passos |
+| D6 | 5 | Alias **`@/` = `src/`** configurado (`tsconfig.json` `paths` + `jest.config.js` `moduleNameMapper`) | Os imports da referência deste doc usam `@/lib/...`; `@` mapeia para `src` |
+| D7 | 5 | Infra de testes: **`jest-expo`** + `@react-native/jest-preset` + `babel-preset-expo` (`babel.config.js`, `jest.config.js`). Testes importam de `@jest/globals` | Stack documentada (Jest); `@jest/globals` evita mexer em `types` global e não afeta os tipos do app |
+| D8 | 5 | `randomFrom`/`randomInt` extraídos para **`src/utils/random.ts`** (a referência os in-lina em `generator.ts` e `fusion.ts`) | Evita duplicação entre os sistemas; é o arquivo já reservado para "aleatoriedade controlada" |
+| D9 | 5 | `weightedOriginForBiome` (em `generator.ts`) recebe **guarda para bioma desconhecido** → fallback p/ Origem aleatória | Correção de bug latente da referência (retornava `undefined`) |
+| D10 | 6 | `fusion.ts`: corrigido o log de herança da **afinidade** (a referência re-sorteava a fonte em vez de registrar o pai realmente escolhido) e **`applyInjectedGene`** foi implementada (citada mas indefinida na referência) | Fidelidade e consistência do log de herança ("legível ao jogador" — doc 01) |
+| D11 | 6 | Mutações condicionais **INVERSO** (afinidades opostas) e **ESPELHO** (mesma origem) **não implementadas** — apenas detecção da condição, como TODO | doc 01 define a condição mas **não a probabilidade** de surgimento; não inventar número de balanço (decisão de design pendente) |
+| D12 | 6 | **ANCESTRAL/CAOS/TRANSCENDÊNCIA** ficam fora do motor de fusão de genoma | Dependem de contexto fora do genoma (gerações, evento global de eclipse, raridade dos pais) — pertencem ao orquestrador de fusão de nível superior |
 
 ---
 
@@ -480,8 +503,10 @@ CREATE POLICY "rules_admin_write" ON public.world_rules FOR INSERT
 npx create-expo-app fragmentos-de-alma --template blank-typescript
 cd fragmentos-de-alma
 npx expo install expo-router react-native-safe-area-context react-native-screens
-npx expo install react-native-reanimated react-native-gesture-handler
-npx expo install @supabase/supabase-js
+# reanimated + gesture-handler exigiram --legacy-peer-deps (ver § Decisões D2)
+npx expo install react-native-reanimated react-native-gesture-handler -- --legacy-peer-deps
+npx expo install @shopify/react-native-skia -- --legacy-peer-deps
+npx expo install @supabase/supabase-js @react-native-async-storage/async-storage
 npx expo install zustand @tanstack/react-query
 ```
 

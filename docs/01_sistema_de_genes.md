@@ -51,6 +51,17 @@ Surgem espontaneamente durante fusões, com probabilidade baseada em condições
 | `CAOS` | Fusão em momento de eclipse (evento global) | Todos os genes rerolam parcialmente |
 | `TRANSCENDÊNCIA` | Fusão de dois lendários | Desbloqueia tier acima do lendário |
 
+> **Pendência de design (aberta no Passo 6):** a tabela define a *condição* de
+> surgimento de cada mutação, mas não a *probabilidade*. O motor de fusão
+> (`src/systems/genes/fusion.ts`) implementa apenas o que está especificado:
+> herança das mutações dos pais (50% cada) e a mutação rara nova
+> (`FUSION_INHERITANCE.mutationRareChance` = 0,5%). **INVERSO** (afinidades
+> opostas) e **ESPELHO** (mesma origem) têm a condição *detectada* mas estão
+> inativos até a probabilidade ser definida aqui. **ANCESTRAL/CAOS/TRANSCENDÊNCIA**
+> dependem de contexto fora do genoma (gerações, evento de eclipse, raridade dos
+> pais) e serão tratados pelo orquestrador de fusão de nível superior, não pelo
+> motor de genoma. Ver `docs/09_roadmap_mvp.md` § Decisões de Implementação (D11–D12).
+
 ---
 
 ## Mecânica de Herança

@@ -30,7 +30,7 @@ Ordem de leitura recomendada (começando do zero):
 /Volumes/SSDLuan/Projetos/Fragmentos_de_Alma/
 ├── app/
 │   └── fragmentos-de-alma/    ← projeto Expo (SDK 56) — trabalhar aqui
-├── docs/                      ← 13 documentos de design (não modificar)
+├── docs/                      ← documentos de design (fonte de verdade viva)
 │   ├── 00_documento_mestre.md
 │   ├── 01_sistema_de_genes.md … 12_endgame.md
 │   └── PROGRESSO.md           ← estado atual do projeto
@@ -112,6 +112,7 @@ A estrutura completa (com todos os arquivos) está em `docs/09_roadmap_mvp.md`.
 - **Nunca implementar mais de um passo do checklist sem confirmação do usuário.** Ver `docs/PROGRESSO.md` para o próximo passo.
 - Leia o documento de design relevante antes de implementar cada sistema (ver tabela em `docs/00_documento_mestre.md`).
 - Em caso de ambiguidade não coberta pelos docs, **pergunte antes de assumir** — não invente comportamento de jogo.
+- **Manter as docs de design sincronizadas com a implementação.** Toda decisão técnica ou desvio da referência (versões, libs, correções de bugs na referência, ambiguidades resolvidas) deve ser registrada no log **"Decisões de Implementação"** em `docs/09_roadmap_mvp.md`, além do `docs/PROGRESSO.md`. Quando a referência de código de um doc estiver desatualizada, corrigir o doc.
 - Atualizar `docs/PROGRESSO.md` ao concluir cada passo.
 - UI acessível com polegar: área de toque mínima de **48×48dp** em todo elemento interativo.
 - Não usar `#FFFFFF` puro em nenhum elemento visual — sempre usar `#E8E0D0` (Branco Pergaminho) ou variação. Ver `docs/10_direcao_de_arte.md`.
