@@ -107,15 +107,22 @@ Todos os arquivos `placeholder` estão vazios — prontos para implementação n
 
 ---
 
-## Próximo Passo: Passo 4 — Tipos TypeScript do sistema de genes
+## Próximo Passo: Passo 5 — Gerador de genoma
 
 Ler `docs/01_sistema_de_genes.md` antes de implementar.
 
-Criar `src/systems/genes/types.ts` com todos os tipos do sistema de genes:
-`Origin`, `Affinity`, `Core`, `MutationGene`, `Rarity`, `EssenceGenes`,
-`AttributeGenes`, `Genome`, `Hero`.
+Criar `src/systems/genes/generator.ts` — funções puras para gerar o genoma
+inicial de um fragmento (pré-fusão). Referência no doc 09 (seção 1.1 →
+`generator.ts`): `generateFragmentGenome(biomeOrigin?)`, com helpers
+`randomFrom`, `randomInt`, `weightedOriginForBiome`.
 
-**Critério de conclusão:** arquivo exporta todos os tipos sem erros de TypeScript.
+> **Nota técnica (Passo 4):** os tipos `VisualParams` e `HeroSkills` em
+> `genes/types.ts` estão como stubs `unknown`. Substituir pelos imports reais
+> de `../visual/types` (Passo 8) e `../skills/types` (Passo 10) quando esses
+> sistemas existirem.
+
+**Critério de conclusão:** funções puras geram genoma válido; testes unitários
+passam (`src/systems/` exige testes — ver CLAUDE.md).
 
 ---
 
@@ -127,7 +134,7 @@ Criar `src/systems/genes/types.ts` com todos os tipos do sistema de genes:
 - [x] Passo 3 — Configurar Supabase (migrations + supabase.ts)
 
 ### Fase 1 — Núcleo Colecionável
-- [ ] Passo 4 — `src/systems/genes/types.ts` (ler doc 01 antes)
+- [x] Passo 4 — `src/systems/genes/types.ts` (ler doc 01 antes)
 - [ ] Passo 5 — `src/systems/genes/generator.ts` (ler doc 01 antes)
 - [ ] Passo 6 — `src/systems/genes/fusion.ts` (ler doc 01 antes)
 - [ ] Passo 7 — `src/systems/genes/rarity.ts` (ler doc 01 antes)
