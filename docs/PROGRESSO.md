@@ -126,26 +126,32 @@ para não duplicar esses helpers entre `generator.ts` (Passo 5) e `fusion.ts`
 
 ---
 
-## Próximo Passo: Passo 7 — Calculador de raridade
+**Passo 7 — Calculador de raridade** ✅ concluído em 2026-06-23
 
-Ler `docs/01_sistema_de_genes.md` (seção "Raridade Dinâmica") antes de implementar.
+`src/systems/genes/rarity.ts` implementado:
+- `calculateRarity(genome, isUnique?)` — cobre todos os 6 tiers (ver D14 no doc 09)
+- `getRarityColor(rarity)` — lê de `theme.colors.rarity`
+- 20 testes unitários passando; `tsc` limpo; sem regressão nas 4 suites (44 testes)
 
-Criar `src/systems/genes/rarity.ts` — função pura `calculateRarity(genome)` que
-classifica a raridade a partir do genoma (soma de atributos, nº de mutações,
-afinidade híbrida, TRANSCENDÊNCIA). Referência no doc 09 (seção 1.1 →
-`rarity.ts`), incluindo `getRarityColor(rarity)`. Cobrir todos os tiers com
-testes unitários.
-
-> **Resolvido (Passo 6 — ver doc 01 e D11/D13):** INVERSO = 30% (afinidades
-> opostas) e ESPELHO = 20% (mesma origem), já ativas e testadas. Par Vazio↔Éter
-> adicionado. *Pity escalonado* fica como evolução futura possível (não implementado).
+> **D14:** `calculateRarity` aceita `isUnique = false` opcional — 'único' requer
+> contexto de evento externo, não derivável só do genoma. Soma máxima base = 600;
+> faixa lendário (>750) fica para bônus futuros; TRANSCENDENCIA é o caminho atual.
+> Ver `docs/09_roadmap_mvp.md` § Decisões de Implementação (D14).
 
 > **Nota técnica (Passo 4):** os tipos `VisualParams` e `HeroSkills` em
 > `genes/types.ts` ainda são stubs `unknown`. Substituir pelos imports reais
 > de `../visual/types` (Passo 8) e `../skills/types` (Passo 10).
 
-**Critério de conclusão:** `calculateRarity` classifica corretamente cada tier;
-testes unitários passam; `tsc --noEmit` limpo.
+---
+
+## Próximo Passo: Passo 8 — Gerador visual procedural
+
+Ler `docs/02_sistema_visual.md` antes de implementar.
+
+Criar `src/systems/visual/generator.ts` (e `src/systems/visual/types.ts`) —
+`generateVisualParams(genome): VisualParams`. Substituir o stub `unknown` de
+`Hero.visualParams` em `genes/types.ts` pelo tipo real de `../visual/types`.
+Cobrir com testes unitários.
 
 ---
 
@@ -160,7 +166,7 @@ testes unitários passam; `tsc --noEmit` limpo.
 - [x] Passo 4 — `src/systems/genes/types.ts` (ler doc 01 antes)
 - [x] Passo 5 — `src/systems/genes/generator.ts` (ler doc 01 antes)
 - [x] Passo 6 — `src/systems/genes/fusion.ts` (ler doc 01 antes)
-- [ ] Passo 7 — `src/systems/genes/rarity.ts` (ler doc 01 antes)
+- [x] Passo 7 — `src/systems/genes/rarity.ts` (ler doc 01 antes)
 - [ ] Passo 8 — `src/systems/visual/generator.ts` (ler doc 02 antes)
 - [ ] Passo 9 — `src/utils/nameGenerator.ts` (ler doc 02 antes)
 - [ ] Passo 10 — `src/systems/skills/generator.ts` (ler doc 03 antes)

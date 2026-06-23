@@ -80,6 +80,7 @@ Jest + React Native Testing Library (testes)
 | D11 | 6 | Mutações condicionais **INVERSO** = 30% (afinidades opostas) e **ESPELHO** = 20% (mesma origem), implementadas (`mutationInversoChance`/`mutationEspelhoChance`) | Decisão do usuário: são gatilhadas por escolha do jogador, então recompensam a intenção (descobríveis, não garantidas) sem inflar raridade. Substitui a pendência original |
 | D12 | 6 | **ANCESTRAL/CAOS/TRANSCENDÊNCIA** ficam fora do motor de fusão de genoma | Dependem de contexto fora do genoma (gerações, evento global de eclipse, raridade dos pais) — pertencem ao orquestrador de fusão de nível superior |
 | D13 | 6 | Adicionado par de afinidades opostas **Vazio↔Éter** (doc 01 e `OPPOSITE_AFFINITIES`) | Decisão do usuário: antes só 6 das 8 afinidades tinham oposto; Vazio/Éter ficavam sem poder gerar INVERSO. Agora as 8 afinidades formam 4 pares |
+| D14 | 7 | `calculateRarity` recebe param opcional `isUnique = false`; sem ele, 'unico' nunca é retornado | 'Único' exige condições externas de evento (não deriváveis só do genoma). O orquestrador de nível superior passará `true` quando aplicável. Soma máxima com atributos base é 600 (6 × 100), então a faixa lendário (>750) só via bônus futuros; TRANSCENDENCIA é o caminho primário atual |
 
 ---
 
