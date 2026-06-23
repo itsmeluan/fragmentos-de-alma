@@ -159,14 +159,27 @@ Arquivos criados/modificados:
 
 ---
 
-## Próximo Passo: Passo 9 — Gerador de nomes
+**Passo 9 — Gerador de nomes** ✅ concluído em 2026-06-23
 
-Ler `docs/02_sistema_visual.md` (seção "Geração de Nome") antes de implementar.
+`src/utils/nameGenerator.ts` implementado:
+- `generateName(genome, seed, ancestorName?)` → `"{Prefixo} {RaizSufixo}[, Epíteto]"`
+- Tabelas: 8 prefixos por Origem × 6 raízes por Núcleo × 6 sufixos por Afinidade
+- Epítetos: TRANSCENDENCIA > CAOS > ANCESTRAL (prioridade); INVERSO/ESPELHO silenciosos
+- 16 testes; 98 totais (6 suites); `tsc` limpo
 
-Criar `src/utils/nameGenerator.ts` — `generateName(genome, seed): string`.
-Formato: `[Prefixo de ORIGEM] + [Raiz de NÚCLEO] + [Sufixo de AFINIDADE]`.
-Mutações adicionam epítetos (TRANSCENDÊNCIA, CAOS, ANCESTRAL). Usar
-`makeSeededRng` para determinismo. Cobrir com testes unitários.
+> **D17:** Epíteto de ANCESTRAL usa genéricos determinísticos (`ancestorName` opcional).
+> O nome do ancestral exige linhagem do banco — pertence ao orquestrador. Ver D17 em doc 09.
+
+---
+
+## Próximo Passo: Passo 10 — Sistema de habilidades
+
+Ler `docs/03_sistema_de_habilidades.md` antes de implementar.
+
+Criar `src/systems/skills/types.ts` e `src/systems/skills/generator.ts` —
+`generateSkills(genome): HeroSkills`. Substituir o stub `HeroSkills = unknown`
+em `genes/types.ts` pelo tipo real de `../skills/types`.
+Cobrir com testes unitários.
 
 ---
 
@@ -183,7 +196,7 @@ Mutações adicionam epítetos (TRANSCENDÊNCIA, CAOS, ANCESTRAL). Usar
 - [x] Passo 6 — `src/systems/genes/fusion.ts` (ler doc 01 antes)
 - [x] Passo 7 — `src/systems/genes/rarity.ts` (ler doc 01 antes)
 - [x] Passo 8 — `src/systems/visual/generator.ts` (ler doc 02 antes)
-- [ ] Passo 9 — `src/utils/nameGenerator.ts` (ler doc 02 antes)
+- [x] Passo 9 — `src/utils/nameGenerator.ts` (ler doc 02 antes)
 - [ ] Passo 10 — `src/systems/skills/generator.ts` (ler doc 03 antes)
 - [ ] Passo 11 — Telas: Login → Registro → Coleção → Detalhe → Fusão → Revelação
 
