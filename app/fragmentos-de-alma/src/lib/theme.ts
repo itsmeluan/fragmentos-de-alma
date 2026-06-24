@@ -39,32 +39,32 @@ export const theme = {
 
   typography: {
     title: {
-      fontFamily: 'Cinzel-Bold',
+      fontFamily: 'Cinzel_700Bold',
       fontSize: 28,
       letterSpacing: 2,
       color: '#C8960C',
     },
     heroName: {
-      fontFamily: 'Cinzel-Regular',
+      fontFamily: 'Cinzel_400Regular',
       fontSize: 18,
       letterSpacing: 1,
       color: '#E8E0D0',
     },
     stat: {
-      fontFamily: 'Rajdhani-SemiBold',
+      fontFamily: 'Rajdhani_600SemiBold',
       fontSize: 16,
       letterSpacing: 0.5,
       color: '#E8E0D0',
     },
     label: {
-      fontFamily: 'Rajdhani-Medium',
+      fontFamily: 'Rajdhani_500Medium',
       fontSize: 12,
       letterSpacing: 1.5,
       textTransform: 'uppercase' as const,
       color: '#8A8A9A',
     },
     body: {
-      fontFamily: 'LibreBaskerville-Regular',
+      fontFamily: 'LibreBaskerville_400Regular',
       fontSize: 14,
       lineHeight: 22,
       color: '#E8E0D0',

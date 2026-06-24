@@ -86,6 +86,15 @@ Jest + React Native Testing Library (testes)
 | D17 | 9 | Epíteto de `ANCESTRAL` usa genéricos determinísticos; `ancestorName` é parâmetro opcional | O nome exato do ancestral exige contexto de linhagem (banco de dados) que pertence ao orquestrador de nível superior. A função pura aceita a injeção quando disponível |
 | D18 | 10 | `HeroSkills` em `genes/types.ts` substituiu stub `unknown` por `import/re-export` de `../skills/types` | Mesmo padrão de D16 (VisualParams); evita dependência circular |
 | D19 | 10 | Modificador M06 (efeito elemental secundário) usa `affinity === 'Éter' \|\| 'Vazio'` como placeholder | O doc 03 diz "AFINIDADE híbrida" mas `EssenceGenes.hybridAffinity` não é acessível sem refatoração do signature. Resolver quando o resolver.ts de batalha precisar do modificador real (Passo 12) |
+| D20 | 11 | Fontes carregadas via `@expo-google-fonts/*` (bundle JS) em vez de arquivos `.ttf` em `assets/fonts/` | Elimina necessidade de baixar/hospedar assets de fonte; nomes de família ficam como `Cinzel_700Bold` (não `Cinzel-Bold`). `theme.ts` atualizado para refletir os nomes exatos |
+| D21 | 11 | `SplashScreen` importado de `expo-router`; `StatusBar` sem prop `backgroundColor` | `expo-splash-screen` não é dependência direta do projeto; o expo-router 56 re-exporta `SplashScreen`. `expo-status-bar` não aceita `backgroundColor` como prop nessa versão |
+| D22 | 11 | `fuseGenomes` recebe `FusionInput` (objeto único), retorna `FusionResult { genome, inheritanceLog }` | A assinatura do Passo 6 usa objeto único, não 3 args separados. `fusion.tsx` usa `fuseGenomes({ parentA, parentB, seed }).genome` |
+| D23 | 11 | `StyleSheet.absoluteFill` (não `absoluteFillObject`) — é um `ViewStyle` direto, sem spread | Os tipos do RN nessa versão expõem `absoluteFill` como ViewStyle e `absoluteFillObject` como objeto plano, mas somente `absoluteFill` é aceito como valor de propriedade de estilo no StyleSheet |
+| D24 | Visual | `react-native-svg` instalado com `--legacy-peer-deps` | Necessário para `SvgXml` e componentes SVG usados na tab bar, ornamentos UI e emblemas de facção |
+| D25 | Visual | Ícone e splash autorados como SVG e convertidos para PNG com `npx sharp-cli ... resize ...`; `app.json` usa PNGs | Mantém assets editáveis em SVG e usa o formato mais compatível com Expo para ícone/splash |
+| D26 | Visual | Glows brancos puros do gerador visual foram substituídos por `#B0BEC5`, `#FFF176` e `#E8E0D0` | Cumpre a regra da direção de arte de nunca usar branco puro sem refatorar toda a paleta procedural do doc 02 |
+| D24 | 12 | Fórmula de dano: `power × (ataqueStat/50) × (50/defStat) × posMult × defendMult` (defending = ×0.5) | Doc 06 não especifica fórmula numérica. Estimativa calibrada pelas faixas de atributo (1–100); revisar no balanceamento de dungeons (Passo 16) |
+| D25 | 12 | RNG do engine é step puro `stepRng(seed): { value, seed }` (LCG sem closure); seed avança no BattleState | Mantém pureza de todas as funções do engine (sem estado mutable oculto) e garante determinismo reproduzível dado o mesmo BattleState inicial |
 
 ---
 

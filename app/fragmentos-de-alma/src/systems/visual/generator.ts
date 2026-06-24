@@ -15,9 +15,9 @@ const AFFINITY_COLORS: Record<Affinity, AffinityColors> = {
   Fogo:   { primary: '#C0392B', secondary: '#E67E22', glow: '#FFEB3B' },
   Água:   { primary: '#1A6E8E', secondary: '#2980B9', glow: '#AEE6FF' },
   Terra:  { primary: '#5D4037', secondary: '#8D6E63', glow: '#A5D6A7' },
-  Vento:  { primary: '#80CBC4', secondary: '#B2EBF2', glow: '#FFFFFF' },
+  Vento:  { primary: '#80CBC4', secondary: '#B2EBF2', glow: '#B0BEC5' },
   Vazio:  { primary: '#1A1A2E', secondary: '#6A0572', glow: '#E040FB' },
-  Luz:    { primary: '#FFF9C4', secondary: '#FDD835', glow: '#FFFFFF' },
+  Luz:    { primary: '#FFF9C4', secondary: '#FDD835', glow: '#FFF176' },
   Sombra: { primary: '#212121', secondary: '#4A148C', glow: '#9C27B0' },
   Éter:   { primary: '#E8EAF6', secondary: '#5C6BC0', glow: '#82B1FF' },
 }
@@ -25,7 +25,7 @@ const AFFINITY_COLORS: Record<Affinity, AffinityColors> = {
 // Paletas híbridas — doc 02 (Afinidades Híbridas)
 const HYBRID_PALETTES: Record<string, AffinityColors> = {
   'Cinza Ardente': { primary: '#1C1C1C', secondary: '#3E2723', glow: '#FF6D00' },
-  'Tempestade':    { primary: '#01579B', secondary: '#B3E5FC', glow: '#FFFFFF' },
+  'Tempestade':    { primary: '#01579B', secondary: '#B3E5FC', glow: '#E8E0D0' },
   'Eclipse':       { primary: '#212121', secondary: '#F9A825', glow: '#FFF176' },
   'Fóssil Astral': { primary: '#4E342E', secondary: '#8D6E63', glow: '#82B1FF' },
 }
