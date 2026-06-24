@@ -163,6 +163,7 @@ export default function BattleScreen() {
     confirmSwap, applyEnemyAction, clearBattle,
   } = useBattleStore()
   const { recordVictory, recordDefeat } = useDungeonStore()
+  const { grantDungeonDrop } = useGameStore()
 
   // Processar turno de inimigo automaticamente após o estado mudar
   useEffect(() => {
@@ -194,6 +195,15 @@ export default function BattleScreen() {
           if (!c.isEnemy) snapshot[id] = { currentHp: c.currentHp, maxHp: c.maxHp, isAlive: c.isAlive }
         }
         recordVictory(snapshot)
+
+        // Drop de fragmento ao limpar um andar: recordVictory já avançou a
+        // sessão; battleIndexInFloor === 0 indica andar concluído. Reabastece a
+        // coleção, fechando o loop já que a fusão consome os pais.
+        const after = useDungeonStore.getState().session
+        if (after && after.battleIndexInFloor === 0) {
+          grantDungeonDrop(after.biome)
+        }
+
         clearBattle()
         router.replace('/(game)/dungeon/between')
       }, 400)
@@ -206,7 +216,7 @@ export default function BattleScreen() {
         ])
       }, 400)
     }
-  }, [battleState?.phase, clearBattle, recordVictory, recordDefeat])
+  }, [battleState?.phase, clearBattle, recordVictory, recordDefeat, grantDungeonDrop])
 
   if (!battleState) {
     return (

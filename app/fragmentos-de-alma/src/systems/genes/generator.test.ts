@@ -32,7 +32,7 @@ describe('generateFragmentGenome', () => {
     const N = 2000
     let dominant = 0
     for (let i = 0; i < N; i++) {
-      if (generateFragmentGenome('cavernas_abismo').essence.origin === 'Abissal') {
+      if (generateFragmentGenome('abismo').essence.origin === 'Abissal') {
         dominant++
       }
     }

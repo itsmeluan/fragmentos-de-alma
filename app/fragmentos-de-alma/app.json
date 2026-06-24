@@ -44,12 +44,14 @@
     },
     "plugins": [
       "expo-router",
-      "expo-haptics"
+      "expo-splash-screen"
     ],
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "PREENCHER-APOS-EAS-INIT"
+        "projectId": "00678b1a-b8d5-4e27-9436-ceda357ab890"
       }
-    }
+    },
+    "owner": "martinsluan"
   }
 }

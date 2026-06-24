@@ -1,10 +1,22 @@
 # PROGRESSO — Fragmentos de Alma
-*Atualizado em: 2026-06-23*
+*Atualizado em: 2026-06-24*
 *Lido por: Claude Code em sessões futuras*
 
 ---
 
 ## Estado Atual
+
+### Correção da jornada inicial (2026-06-24)
+Testado o fluxo completo no Simulador iOS. O novo jogador estava em soft-lock: 0 heróis, sem forma de criar o primeiro (Fusão exige 2, dungeon exige 6), e o registro `players` nem era criado no signup (recursos 0/0/0). Corrigido (ver D31–D34 em `docs/09_roadmap_mvp.md`): `initialize` cria o `players` se faltar; jogador novo recebe **6 fragmentos iniciais**; dungeon/torre ganharam Stack próprio e a tab bar some na batalha (não dá mais pra sair sem querer); hint inicial aponta para Kethara. **Verificado ponta a ponta**: login → mapa (500/5/0) → coleção (6 heróis) → Kethara → batalha jogável (turnos, roda de ações, skills, alvo) → Fusão cria herói de Geração 2.
+As 3 pendências menores foram resolvidas (ver D35–D38 em `docs/09_roadmap_mvp.md`):
+1. **Economia da fusão**: agora cobra Fragmentos por tier (100/300/800/2000/5000 pela maior raridade), sem Cristais; consome ambos os pais e **cristaliza** o gene mais forte de cada um (tabela `fragments`, `fusion_byproduct`); um **fragmento dropa ao limpar cada andar** de dungeon, fechando o loop. Verificado no simulador: custo 500→400, coleção 10→9, filho Gen-2.
+2. **Log de batalha** mostra o nome da habilidade (não mais "active_0").
+3. **IDs de bioma unificados** (canônicos de `dungeon.ts`); profile exibe rótulo legível; migration 006 corrige o default `unlocked_biomes` → `kethara` (**aplicar via `supabase db push`**).
+
+Follow-ups (não bloqueiam): UI de injeção de gene usando fragmentos cristalizados; persistência das recompensas de batalha (soul_fragments) no banco — hoje a tela de recompensas é só visual.
+
+### Correção de boot (2026-06-24)
+O app abria e ficava preso numa tela escura com "Fragmentos de Alma" — diagnosticado no **Simulador iOS** (não no dispositivo, que exige desbloqueio a cada launch). Causa raiz: `package.json` `main` apontava para `index.ts`/`App.tsx` (template do `create-expo-app`) em vez de `expo-router/entry`, então o expo-router nunca era carregado e nenhuma rota da pasta `app/` rodava. Corrigido (ver D27–D30 em `docs/09_roadmap_mvp.md`): `main` → `expo-router/entry`, `App.tsx`/`index.ts` removidos, `expo-splash-screen` adicionado como dependência, `app/(auth)/_layout.tsx` criado. **Verificado**: login e registro renderizam e navegam corretamente no simulador.
 
 ### Passos concluídos
 
@@ -550,9 +562,86 @@ Implementado conforme `docs/10_direcao_de_arte.md`:
 
 ---
 
-## Próximo Passo: Passo 25 (se houver)
+## Passo 25 — Torres de Ressonância ✅
 
-O checklist de 24 passos foi concluído. Ver `docs/09_roadmap_mvp.md` para próximas fases.
+**Concluído em:** 2026-06-24  
+**Doc de referência:** `docs/12_endgame.md` (Pilar 1 — Torres de Ressonância)
+
+### O que foi implementado
+
+**`src/systems/endgame/towers.ts`** (novo — lógica pura):
+- `TOWER_ZONES`: 4 zonas (andares 1–25, 26–50, 51–75, 76–100) com mecânicas progressivas
+- `TOWER_BOSS_FLOORS`: chefes nos andares 25, 50, 75, 100
+- `TOWER_MINI_BOSS_FLOORS`: mini-chefes nos andares 10, 35, 60, 90
+- `generateTowerFloorEnemies(floor, seed)`: inimigos escalados por zona com multiplicadores de stat (×1,3 zona 1 → ×2,5 zona 4)
+- `getAmplifiedAffinity(floor)`: afinidade amplificada rotacional na zona 2
+- `createTowerSession`, `advanceTowerFloor`, `getRetreatFloor`, `isTowerComplete`
+- `HP_RECOVERY_TOWER = 0.15` (15%, metade do 30% das dungeons)
+- `TOWER_UNLOCK_TERRITORIES = 4` (condição de desbloqueio)
+
+**`src/store/towerStore.ts`** (novo — estado Zustand):
+- `session: TowerSession | null` — progresso ativo da sessão
+- `weeklyBestFloor` e `allTimeBestFloor` — recordes
+- `startTower(heroes)`, `recordFloorVictory(combatants)`, `applyHpRecovery()`, `handleDefeat()`, `exitTower()`
+- `handleDefeat()`: retrocede para o início da zona atual + reseta HP para máximo
+
+**`app/(game)/dungeon/tower.tsx`** (novo — tela de entrada):
+- Exibe recordes (semanal + all-time), progresso da sessão atual
+- Mostra as 4 zonas com mecânicas e cores distintivas
+- Mostra recompensas por marco (andares 25/50/75/100)
+- Bloqueia entrada se < 4 territórios com progresso ou < 6 heróis
+- Se sessão ativa: botão "CONTINUAR — ANDAR X"
+
+**`app/(game)/dungeon/tower-battle.tsx`** (novo — wrapper de batalha):
+- Reutiliza `BattleScreen` (battle.tsx)
+- Intercepta `battleState.phase === 'victory'` → `recordFloorVictory()` + navega para `tower-between`
+- Intercepta `battleState.phase === 'defeat'` → `handleDefeat()` + Alert + retorna para `tower`
+
+**`app/(game)/dungeon/tower-between.tsx`** (novo — entre andares):
+- Aplica recuperação de 15% HP automaticamente ao montar
+- Mostra: andar concluído, barra de progresso geral (0–100), zona ativa + mecânica
+- Mostra afinidade amplificada (zona 2) quando ativa
+- Lista HP de todos os 6 heróis após recuperação
+- Info do próximo andar (chefe / mini-chefe / normal)
+- Marcador de marco atingido quando alcança andar 25/50/75/100
+- Botões: "PRÓXIMO ANDAR" e "Salvar e sair"
+
+**`app/(game)/index.tsx`** (modificado — integração no mapa):
+- `TowerButton`: botão flutuante `bottom: safeAreaBottom + 72` (acima da tab bar)
+- Visível apenas quando ≥ 4 territórios com progresso (condição de desbloqueio)
+- Mostra andar atual se sessão ativa; recorde all-time se não
+- Navega para `/(game)/dungeon/tower`
+
+### Decisões de implementação
+
+**D33 — tower-battle.tsx como wrapper:** Em vez de modificar `battle.tsx` com parâmetros de rota ou condicionais de towerStore, criou-se `tower-battle.tsx` que importa `BattleScreen` e intercepta o phase via `useEffect`. Isso isola completamente a lógica da torre da lógica das dungeons.
+
+**D34 — Mecânicas de zona como display-only no MVP:** As mecânicas específicas (Ressonância Elemental zona 2, Memória de Batalha zona 3, Prima Invertido zona 4) estão descritas na UI mas não implementadas no motor de batalha — implementá-las exigiria mudanças significativas no `engine.ts`. Os valores de stat dos inimigos já as simulam parcialmente (multiplicadores de zona). As mecânicas reais são escopo do Passo 26+.
+
+**D35 — heroHpSnapshot usa -1 para HP máximo:** `-1` no snapshot indica "usar HP máximo do herói" para evitar serializar valores de HP antes da primeira batalha.
+
+---
+
+## Sistema de Transmutação (design completo — 2026-06-24)
+
+Brainstorming completo do **Círculo de Transmutação** concluído. Design documentado em `docs/13_transmutacao.md`. Pronto para implementação pelo Codex (ver prompt em `codex-output/PROMPT_TRANSMUTACAO_COMPLETO.md`).
+
+Resumo do que foi projetado:
+- **3 submenus:** Criar Eco (aposentar → blueprint genético), Extrair Cristais (aposentar → Cristais), Transmutar Heróis (fusão + catalisadores opcionais)
+- **Ecos como itens blueprint** indexados por assinatura genética, com absorção automática (melhores valores, cap 120)
+- **Proteção de roster:** 3 time + 3 banco sempre protegidos; nunca menos de 6 heróis na coleção
+- **Catalisadores graduados:** 1-3 Ecos concedem +1 tier com probabilidade 70%→95% (Comum) a 15%→40% (Épico→Lendário)
+- **Legado via Score:** soma ponderada de Ecos únicos por raridade (não contagem simples)
+- **Migration 007:** tabela `ecos` + colunas `team_hero_ids`, `bench_hero_ids`, `legacy_score` em `players`
+- **Calibração:** curvas de XP, trickle de Cristais e thresholds exatos são pendência de playtesting
+
+---
+
+## Próximo Passo
+
+**Implementação do Círculo de Transmutação**
+Ver `docs/13_transmutacao.md` e prompt Codex em `codex-output/PROMPT_TRANSMUTACAO_COMPLETO.md`.
+⚠️ Confirme antes de iniciar (ou usar o prompt Codex diretamente).
 
 ---
 
@@ -593,7 +682,7 @@ O checklist de 24 passos foi concluído. Ver `docs/09_roadmap_mvp.md` para próx
 - [x] Passo 24 — Polimento visual + checklist de publicação (ler doc 10 antes)
 
 ### Pós-MVP — Endgame (doc 12)
-- [ ] Passo 25 — Torres de Ressonância
+- [x] Passo 25 — Torres de Ressonância
 - [ ] Passo 26 — Conflito de Facções (PvP assíncrono)
 - [ ] Passo 27 — Fragmentos Ancestrais
 - [ ] Passo 28 — Ciclos de Solum (temporadas)

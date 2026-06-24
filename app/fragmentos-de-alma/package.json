@@ -1,7 +1,7 @@
 {
   "name": "fragmentos-de-alma",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/cinzel": "^0.4.2",
     "@expo-google-fonts/libre-baskerville": "^0.4.3",
@@ -16,6 +16,7 @@
     "expo-haptics": "~56.0.3",
     "expo-linking": "~56.0.14",
     "expo-router": "~56.2.11",
+    "expo-splash-screen": "~56.0.10",
     "expo-status-bar": "~56.0.4",
     "expo-video": "^56.1.4",
     "react": "19.2.3",
@@ -39,8 +40,8 @@
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest"
   },

@@ -78,29 +78,31 @@ Esse modelo gera confiança com a comunidade, reduz toxicidade de "pay-to-win" e
 ---
 
 ### ✨ Ecos
-*Recurso de legado — nunca vendido, nunca comprado*
+*Item de blueprint genético — nunca vendido, nunca comprado*
 
-**O que é:** a memória cristalizada de heróis aposentados. Representa o peso da jornada do jogador.
+**O que é:** a memória cristalizada de um herói aposentado. Cada Eco é um **item único indexado pela assinatura genética** do herói de origem (origem + afinidade + núcleo + mutações). Não é uma moeda — é uma coleção de blueprints.
 
 **Para que serve:**
-- Desbloquear nós da Árvore de Legado da Conta (passivas permanentes)
-- Comprar cosméticos de interface exclusivos (temas de fusão, efeitos de tela, bordas de herói)
-- Desbloquear biomas avançados
+- **Catalisador de Transmutação:** adicionar Ecos como catalisadores ao Transmutar Heróis aumenta a probabilidade de o filho nascer com +1 tier de raridade
+- **Progressão do Legado:** a Árvore de Legado cresce com base no Score de Legado — soma ponderada de Ecos únicos por raridade (ver `docs/13_transmutacao.md`)
+- **Cosméticos exclusivos:** temas de fusão, efeitos de tela, bordas de herói (futuro)
 
 **Como se obtém:**
-- Ao aposentar um herói (quantidade baseada na raridade e nível do herói aposentado)
+- Via **"Criar Eco"** no Círculo de Transmutação: o jogador aposenta um herói e cristaliza sua identidade genética como Eco
+- Duplicatas da mesma assinatura genética são **absorvidas** no Eco existente (melhores genes são mantidos, cap 120 por atributo)
 
-| Herói aposentado | Ecos gerados |
+| Raridade do herói aposentado | Peso no Score de Legado |
 |---|---|
-| Comum nível 1–25 | 1 Eco |
-| Comum nível 26–50 | 2 Ecos |
-| Incomum qualquer nível | 3–5 Ecos |
-| Raro qualquer nível | 8–12 Ecos |
-| Épico qualquer nível | 20–30 Ecos |
-| Lendário qualquer nível | 60–80 Ecos |
-| Único | 150+ Ecos |
+| Comum | 1 ponto |
+| Incomum | 3 pontos |
+| Raro | 8 pontos |
+| Épico | 20 pontos |
+| Lendário | 50 pontos |
+| Único | 150 pontos |
 
 **Regra de ouro:** Ecos **nunca** entram na loja premium. São a prova de que o jogador jogou — não pagou.
+
+> **Mudança de design (2026-06-24):** Ecos deixaram de ser moeda (quantidade acumulada) e tornaram-se itens de blueprint (coleção de identidades únicas). A Árvore de Legado agora cresce pelo Score de Legado (Ecos únicos × peso). Ver `docs/13_transmutacao.md` para a especificação completa.
 
 ---
 

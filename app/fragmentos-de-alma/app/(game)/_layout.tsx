@@ -42,6 +42,14 @@ export default function GameLayout() {
           tabBarIcon: ({ focused }) => <TabIcon name="kael" active={focused} />,
         }}
       />
+      {/* Dungeon/torre: fora da tab bar e esconde a barra durante a batalha */}
+      <Tabs.Screen
+        name="dungeon"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
     </Tabs>
   )
 }

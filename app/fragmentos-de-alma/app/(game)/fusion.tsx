@@ -5,14 +5,13 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { theme } from '@/lib/theme'
-import { useGameStore } from '@/store/gameStore'
+import { useGameStore, fusionCost } from '@/store/gameStore'
 import { useUiStore } from '@/store/uiStore'
 import { HeroVisual } from '@/components/hero/HeroVisual'
 import { HeroDetail } from '@/components/hero/HeroDetail'
 import { Button } from '@/components/ui/Button'
 import { AlchemicalCircle } from '@/components/fusion/AlchemicalCircle'
 import { CornerBracket } from '@/components/ui/Ornaments'
-import { supabase } from '@/lib/supabase'
 import { useNarrativeStore } from '@/store/narrativeStore'
 import { LoreHint } from '@/components/narrative/LoreHint'
 import { fuseGenomes } from '@/systems/genes/fusion'
@@ -86,7 +85,7 @@ function SelectorModal({
 }
 
 export default function FusionScreen() {
-  const { heroes, addHero } = useGameStore()
+  const { heroes, player, commitFusion } = useGameStore()
   const { fusionSlotA, fusionSlotB, setFusionSlot, revelationHero, setRevelationHero, clearFusion } = useUiStore()
   const [selectorSlot, setSelectorSlot] = useState<'A' | 'B' | null>(null)
   const [loading, setLoading] = useState(false)
@@ -103,14 +102,16 @@ export default function FusionScreen() {
 
   const canFuse = fusionSlotA !== null && fusionSlotB !== null && fusionSlotA.id !== fusionSlotB.id
 
+  const cost = (fusionSlotA && fusionSlotB)
+    ? fusionCost(fusionSlotA.rarity, fusionSlotB.rarity)
+    : null
+  const canAfford = cost === null || (player?.soulFragments ?? 0) >= cost
+
   async function handleFuse() {
     if (!fusionSlotA || !fusionSlotB) return
     setLoading(true)
     setError(null)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Não autenticado.')
-
       const seed = `${fusionSlotA.fusionSeed}:${fusionSlotB.fusionSeed}:${Date.now()}`
       const { genome } = fuseGenomes({ parentA: fusionSlotA.genome, parentB: fusionSlotB.genome, seed })
       const rarity = calculateRarity(genome)
@@ -119,47 +120,11 @@ export default function FusionScreen() {
       const skills = generateSkills(genome, rarity, seed)
       const generation = Math.max(fusionSlotA.generation, fusionSlotB.generation) + 1
 
-      const { data, error: dbErr } = await supabase.from('heroes').insert({
-        player_id: user.id,
-        name,
-        fusion_seed: seed,
-        genome,
-        rarity,
-        visual_params: visualParams,
-        skills,
-        level: 1,
-        xp: 0,
-        bond: 0,
-        ultimate_charge: 0,
-        parent_a_id: fusionSlotA.id,
-        parent_b_id: fusionSlotB.id,
-        generation,
-        is_retired: false,
-      }).select().single()
-
-      if (dbErr) throw dbErr
-
-      const newHero: Hero = {
-        id: data.id,
-        playerId: user.id,
-        name,
-        fusionSeed: seed,
-        genome,
-        rarity,
-        visualParams,
-        skills,
-        level: 1,
-        xp: 0,
-        bond: 0,
-        ultimateCharge: 0,
-        parentAId: fusionSlotA.id,
-        parentBId: fusionSlotB.id,
-        generation,
-        isRetired: false,
-      }
-
-      addHero(newHero)
-      setRevelationHero(newHero)
+      const result = await commitFusion(fusionSlotA, fusionSlotB, {
+        name, fusionSeed: seed, genome, rarity, visualParams, skills, generation,
+      })
+      if (!result.ok) { setError(result.error); return }
+      setRevelationHero(result.hero)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha na fusão.')
     } finally {
@@ -185,12 +150,18 @@ export default function FusionScreen() {
       <View style={styles.footer}>
         <View style={styles.costRow}>
           <Text style={styles.costLabel}>CUSTO:</Text>
-          <Text style={styles.costValue}>100 Fragmentos + 1 Cristal</Text>
+          <Text style={[styles.costValue, !canAfford && { color: theme.colors.red.vivid }]}>
+            {cost !== null ? `${cost} Fragmentos` : '— Fragmentos'}
+            {player ? `  (você tem ${player.soulFragments})` : ''}
+          </Text>
         </View>
+        <Text style={styles.consumeNote}>
+          Os dois fragmentos são consumidos e cristalizados na fusão.
+        </Text>
         <Button
           label="Fundir Almas"
           onPress={handleFuse}
-          disabled={!canFuse}
+          disabled={!canFuse || !canAfford}
           loading={loading}
           style={{ marginTop: theme.spacing.sm }}
         />
@@ -345,6 +316,13 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.stat.fontFamily,
     fontSize: 13,
     color: theme.colors.gold.light,
+  },
+  consumeNote: {
+    fontFamily: theme.typography.body.fontFamily,
+    fontSize: 11,
+    color: theme.colors.text.secondary,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   error: {
     fontFamily: theme.typography.body.fontFamily,

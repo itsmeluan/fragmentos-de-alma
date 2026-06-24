@@ -32,12 +32,14 @@ export function generateFragmentGenome(biomeOrigin?: string): Genome {
 
 // Biomas têm 60% de chance de dropar a Origem dominante; 40% aleatória.
 // ver doc 04 (tabela de biomas). Bioma desconhecido cai em Origem aleatória.
+// As chaves usam os IDs canônicos de BiomeId (ver src/systems/progression/dungeon.ts).
+// Biomas sem Origem dominante clara (eter/vazio, territórios) caem em Origem aleatória.
 function weightedOriginForBiome(biomeId: string): Origin {
   const biomeOriginMap: Record<string, Origin> = {
-    cavernas_abismo: 'Abissal',
-    pináculo_celestial: 'Celestial',
-    floresta_primordial: 'Primordial',
-    forja_eterna: 'Forjada',
+    abismo: 'Abissal',
+    celestial: 'Celestial',
+    genesis: 'Primordial',
+    forja: 'Forjada',
   }
   const dominant = biomeOriginMap[biomeId]
   if (!dominant) return randomFrom(ORIGINS)

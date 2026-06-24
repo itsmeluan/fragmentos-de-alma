@@ -255,7 +255,7 @@ export function generateFloorEnemies(
 
   return Array.from({ length: count }, (_, i) => {
     const enemySeed = `${seed}-f${floor}-b${battleIndex}-e${i}`
-    const genome = generateFragmentGenome()
+    const genome = generateFragmentGenome(biome)
 
     // Corrupção de bioma (doc 07)
     for (const [attr, bonus] of Object.entries(config.attrBoost)) {

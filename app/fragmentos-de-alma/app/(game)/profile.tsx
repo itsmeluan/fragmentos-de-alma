@@ -9,6 +9,19 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Button } from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase'
 import { TERRITORY_DEFS } from '@/systems/world/mapData'
+import { BIOMES } from '@/systems/progression/dungeon'
+import type { BiomeId } from '@/systems/progression/dungeon'
+
+// Nome legível de um bioma a partir do id armazenado. Usa o registro canônico
+// (BIOMES); para ids legados/desconhecidos, humaniza (troca _ por espaço).
+function biomeLabel(id: string): string {
+  const known = BIOMES[id as BiomeId]
+  if (known) return known.label
+  return id
+    .split('_')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+}
 
 function StatBlock({ value, label }: { value: number | string; label: string }) {
   return (
@@ -97,9 +110,9 @@ export default function ProfileScreen() {
       <View style={styles.biomesSection}>
         <Text style={styles.sectionTitle}>BIOMAS DESBLOQUEADOS</Text>
         <View style={styles.biomesList}>
-          {(player?.unlockedBiomes ?? ['genesis']).map(b => (
+          {(player?.unlockedBiomes ?? ['kethara']).map(b => (
             <View key={b} style={styles.biomeTag}>
-              <Text style={styles.biomeTagText}>{b}</Text>
+              <Text style={styles.biomeTagText}>{biomeLabel(b)}</Text>
             </View>
           ))}
         </View>

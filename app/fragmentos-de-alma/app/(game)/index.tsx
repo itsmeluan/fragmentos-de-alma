@@ -29,6 +29,9 @@ import { useNarrativeStore } from '@/store/narrativeStore'
 import { OnboardingModal } from '@/components/narrative/OnboardingModal'
 import { PrologueModal } from '@/components/narrative/PrologueModal'
 import { LoreHint } from '@/components/narrative/LoreHint'
+import { useTowerStore } from '@/store/towerStore'
+import { TOWER_UNLOCK_TERRITORIES } from '@/systems/endgame/towers'
+import { BIOMES } from '@/systems/progression/dungeon'
 
 const { width: SW } = Dimensions.get('window')
 const SCALE = SW / MAP_WIDTH
@@ -338,6 +341,42 @@ function TerritoryTapTargets({ onSelect }: { onSelect: (id: TerritoryId) => void
   )
 }
 
+// ─── Torre button ─────────────────────────────────────────────────────────────
+
+function TowerButton() {
+  const { bottom } = useSafeAreaInsets()
+  const territories = useWorldStore(s => s.territories)
+  const towerSession = useTowerStore(s => s.session)
+  const allTimeBest = useTowerStore(s => s.allTimeBestFloor)
+
+  const territoriesWithProgress = TERRITORY_DEFS.filter(def => {
+    const state = territories[def.id]
+    const biome = BIOMES[def.id]
+    if (!state || !biome) return false
+    return state.playerProgress.surfaceFloors >= 1
+  }).length
+
+  const isUnlocked = territoriesWithProgress >= TOWER_UNLOCK_TERRITORIES
+
+  if (!isUnlocked) return null
+
+  return (
+    <Pressable
+      onPress={() => router.push('/(game)/dungeon/tower' as `/${string}`)}
+      style={[styles.towerBtn, { bottom: bottom + 72 }]}
+    >
+      <Text style={styles.towerBtnGlyph}>◎</Text>
+      <Text style={styles.towerBtnLabel}>TORRE</Text>
+      {towerSession && (
+        <Text style={styles.towerBtnFloor}>/{towerSession.currentFloor}</Text>
+      )}
+      {!towerSession && allTimeBest > 0 && (
+        <Text style={styles.towerBtnFloor}>{allTimeBest}</Text>
+      )}
+    </Pressable>
+  )
+}
+
 // ─── Map HUD ─────────────────────────────────────────────────────────────────
 
 function MapHUD() {
@@ -612,6 +651,7 @@ export default function MapScreen() {
       <BossIndicators />
       <AlchemicCompassView />
       <MapHUD />
+      <TowerButton />
 
       {isPanelOpen && (
         <Pressable
@@ -640,7 +680,7 @@ export default function MapScreen() {
       {showMapHint && (
         <LoreHint
           id="map-first"
-          text="Os fluxos de Prima conectam os territórios de Solum. Toque em um território para explorar."
+          text="Seus primeiros fragmentos já aguardam no Ritual de Fusão. Para começar, toque em Kethara — o território da Pedra Viva — e entre em sua primeira dungeon."
           onDismiss={() => setShowMapHint(false)}
         />
       )}
@@ -685,6 +725,40 @@ const styles = StyleSheet.create({
   },
 
   tapTarget: { position: 'absolute', width: 80, height: 80 },
+
+  towerBtn: {
+    position: 'absolute',
+    right: 14,
+    backgroundColor: 'rgba(10,10,20,0.85)',
+    borderWidth: 0.5,
+    borderColor: theme.colors.gold.dark,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    alignItems: 'center',
+    minWidth: 52,
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  towerBtnGlyph: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 14,
+    color: theme.colors.gold.main,
+    lineHeight: 18,
+  },
+  towerBtnLabel: {
+    fontFamily: 'Rajdhani_500Medium',
+    fontSize: 7,
+    color: theme.colors.gold.dark,
+    letterSpacing: 1.5,
+    lineHeight: 10,
+  },
+  towerBtnFloor: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 9,
+    color: theme.colors.gold.light,
+    letterSpacing: 0.5,
+    lineHeight: 12,
+  },
 
   compassContainer: {
     position: 'absolute',

@@ -354,6 +354,17 @@ export function startTurn(state: BattleState): BattleState {
   return addEvents(s, events)
 }
 
+// Resolve o nome legível de uma habilidade pelo seu id (ex: "active_0" → "Pesada Selagem").
+function skillNameById(actor: Combatant, id: string): string {
+  const all = [
+    ...actor.skills.active,
+    ...actor.skills.passive,
+    ...actor.skills.unique,
+    ...actor.skills.emergent,
+  ]
+  return all.find(s => s.id === id)?.name ?? id
+}
+
 // Fim de turno: ticks de cooldown, carga passiva do banco, avança turno.
 export function endTurn(state: BattleState): BattleState {
   const actorId = state.turnOrder[state.currentTurnIndex]
@@ -366,7 +377,14 @@ export function endTurn(state: BattleState): BattleState {
   for (const [id, cd] of Object.entries(actor.cooldowns)) {
     if (cd > 1) {
       newCooldowns[id] = cd - 1
-      cdEvents.push({ type: 'cooldown_tick', actorId, skillId: id, label: `${id}: ${cd - 1} turnos.` })
+      const turns = cd - 1
+      const skillName = skillNameById(actor, id)
+      cdEvents.push({
+        type: 'cooldown_tick',
+        actorId,
+        skillId: id,
+        label: `${skillName} recarrega (${turns} ${turns === 1 ? 'turno' : 'turnos'}).`,
+      })
     }
   }
 
