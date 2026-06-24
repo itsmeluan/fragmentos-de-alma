@@ -456,10 +456,24 @@ Arquivos criados/modificados:
 
 ---
 
-## Próximo Passo: Passo 21 — Estados do Mapa
+**Passo 21 — Estados do Mapa (Animações)** ✅ concluído em 2026-06-24
 
-Ler `docs/11_mapa_de_solum.md` (seções Estados do Mapa e Animações) antes de implementar.
-Implementar animações dos estados: névoa de desconhecido, pulsação de corrupção severa, linhas de Prima animadas, fronteiras políticas de tensão/aliança.
+Modificações em `app/(game)/index.tsx`:
+- **Prima flow lines animadas** — efeito de cometa por linha: `useDerivedValue` calcula `start`/`end` escalonados por índice (stagger = i/8) com `flowProgress` (0→1 em 20s, `Easing.linear`). Path estático dim (10% opacidade) + Path de cometa brilhante (55%)
+- **Pulso de territórios** — `fillPulse` anima opacidade do fill entre 0.22 e 0.32 em ciclo de 4s via `withSequence`; usado como `opacity` em `<Group>` do Skia
+- **Névoa de corrupção severa** (>60%) — `fogPulse` anima overlay vermelho-escuro entre 0.28 e 0.55 em ciclo de 2.8s; aplicado como segundo `<Group opacity={fogPulse}>` sobre territórios com `corruptionLevel > 60`
+- **Bússola alquímica rotativa** — movida do Canvas Skia para `AlchemicCompassView` (Animated.View + SvgXml); `compassRotation` com `withRepeat(withTiming(360, 120000, Easing.linear))`; posicionada no canto inferior direito com `useSafeAreaInsets`
+- **Indicador de chefe disponível** — `BossIndicators`: Animated.View pulsante (opacity 0.5→1.0, 700ms) com `!` na cor da facção; aparece sobre territórios onde `depthsFloors >= 10 && !bossDefeated`
+
+> **D28:** `SharedValue` deve ser importado diretamente de `react-native-reanimated`, não via `Animated.SharedValue` — o namespace `Animated` desta versão não exporta esse tipo.
+
+305 testes passando; `tsc --noEmit` limpo.
+
+---
+
+## Próximo Passo: Passo 22 — Segundo Bioma + Sistema de Facções
+
+Ler `docs/04_economia.md` e `docs/08_narrativa.md` antes de implementar.
 
 ---
 
@@ -494,7 +508,7 @@ Implementar animações dos estados: névoa de desconhecido, pulsação de corru
 
 ### Fase 4 — MVP Publicável
 - [x] Passo 20 — Mapa de Solum com React Native Skia (ler doc 11 antes)
-- [ ] Passo 21 — Estados do mapa: corrupção, progresso, fronteiras políticas
+- [x] Passo 21 — Estados do mapa: corrupção, progresso, fronteiras políticas
 - [ ] Passo 22 — Segundo bioma + sistema de facções (ler docs 04 e 08 antes)
 - [ ] Passo 23 — Narrativa Camada 1 + onboarding (ler doc 08 antes)
 - [ ] Passo 24 — Polimento visual + checklist de publicação (ler doc 10 antes)

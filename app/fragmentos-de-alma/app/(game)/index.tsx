@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import {
   View, Text, Pressable, ScrollView, StyleSheet, Dimensions,
 } from 'react-native'
-import Animated, {
-  useSharedValue, useAnimatedStyle, withTiming,
+import Animated, { SharedValue,
+  useSharedValue, useAnimatedStyle, withTiming, withRepeat,
+  withSequence, Easing, useDerivedValue,
 } from 'react-native-reanimated'
 import {
   Canvas,
@@ -11,6 +12,7 @@ import {
   Group,
   Skia,
 } from '@shopify/react-native-skia'
+import { SvgXml } from 'react-native-svg'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useGameStore } from '@/store/gameStore'
@@ -26,22 +28,22 @@ import type { TerritoryDef } from '@/systems/world/mapData'
 
 const { width: SW } = Dimensions.get('window')
 const SCALE = SW / MAP_WIDTH
+const SH_APPROX = 900
+const FLOW_COUNT = PRIMA_FLOW_PAIRS.length
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function hexAlpha(hex: string, opacity: number): string {
   const a = Math.round(Math.max(0, Math.min(1, opacity)) * 255)
-    .toString(16)
-    .padStart(2, '0')
+    .toString(16).padStart(2, '0')
   return hex + a
 }
 
-function corruptionOverlayColor(level: number): string | null {
+function corruptionBaseColor(level: number): string | null {
   if (level <= 20) return null
   if (level <= 40) return 'rgba(80,120,80,0.22)'
   if (level <= 60) return 'rgba(90,50,110,0.38)'
-  if (level <= 80) return 'rgba(140,20,20,0.52)'
-  return 'rgba(10,10,10,0.70)'
+  return null // severe handled by animated overlay
 }
 
 function reputationLabel(rep: number): string {
@@ -70,12 +72,92 @@ function globalCorruptionColor(level: number): string {
   return '#C62828'
 }
 
+// ─── Alchemic compass (outside Canvas, animated rotation) ────────────────────
+
+const COMPASS_SVG = `<svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="28" cy="28" r="25" fill="none" stroke="rgba(200,150,12,0.3)" stroke-width="1"/>
+  <circle cx="28" cy="28" r="7"  fill="none" stroke="rgba(200,150,12,0.3)" stroke-width="1"/>
+  <line x1="28" y1="3"  x2="28" y2="14" stroke="rgba(200,150,12,0.55)" stroke-width="1.5"/>
+  <line x1="53" y1="28" x2="42" y2="28" stroke="rgba(200,150,12,0.55)" stroke-width="1.5"/>
+  <line x1="28" y1="53" x2="28" y2="42" stroke="rgba(200,150,12,0.55)" stroke-width="1.5"/>
+  <line x1="3"  y1="28" x2="14" y2="28" stroke="rgba(200,150,12,0.55)" stroke-width="1.5"/>
+  <line x1="46" y1="10" x2="41" y2="15" stroke="rgba(200,150,12,0.3)" stroke-width="1"/>
+  <line x1="46" y1="46" x2="41" y2="41" stroke="rgba(200,150,12,0.3)" stroke-width="1"/>
+  <line x1="10" y1="46" x2="15" y2="41" stroke="rgba(200,150,12,0.3)" stroke-width="1"/>
+  <line x1="10" y1="10" x2="15" y2="15" stroke="rgba(200,150,12,0.3)" stroke-width="1"/>
+</svg>`
+
+function AlchemicCompassView() {
+  const { bottom } = useSafeAreaInsets()
+  const rotation = useSharedValue(0)
+
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withTiming(360, { duration: 120000, easing: Easing.linear }),
+      -1, false
+    )
+  }, [])
+
+  const compassStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }))
+
+  return (
+    <Animated.View style={[styles.compassContainer, { bottom: bottom + 80 }, compassStyle]}>
+      <SvgXml xml={COMPASS_SVG} width={52} height={52} />
+    </Animated.View>
+  )
+}
+
+// ─── Prima flow line (animated comet) ────────────────────────────────────────
+
+type FlowLineProps = {
+  path: ReturnType<typeof Skia.Path.Make>
+  index: number
+  flowProgress: SharedValue<number>
+}
+
+function PrimaFlowLine({ path, index, flowProgress }: FlowLineProps) {
+  const stagger = index / FLOW_COUNT
+
+  const cometEnd = useDerivedValue(() => {
+    'worklet'
+    return (flowProgress.value + stagger) % 1
+  })
+  const cometStart = useDerivedValue(() => {
+    'worklet'
+    const e = (flowProgress.value + stagger) % 1
+    return Math.max(0, e - 0.18)
+  })
+
+  return (
+    <Group>
+      <SkiaPath path={path} color="rgba(200,150,12,0.10)" style="stroke" strokeWidth={1} />
+      <SkiaPath
+        path={path}
+        color="rgba(200,150,12,0.55)"
+        style="stroke"
+        strokeWidth={1.8}
+        start={cometStart}
+        end={cometEnd}
+      />
+    </Group>
+  )
+}
+
 // ─── Skia canvas ─────────────────────────────────────────────────────────────
 
-function SolumMapCanvas({ selectedId }: { selectedId: TerritoryId | null }) {
+type CanvasProps = {
+  selectedId: TerritoryId | null
+  fillPulse: SharedValue<number>
+  fogPulse: SharedValue<number>
+  flowProgress: SharedValue<number>
+}
+
+function SolumMapCanvas({ selectedId, fillPulse, fogPulse, flowProgress }: CanvasProps) {
   const territories = useWorldStore(s => s.territories)
 
-  const { territoryPaths, flowPaths, compassPath, bgPath } = useMemo(() => {
+  const { territoryPaths, flowPaths, bgPath } = useMemo(() => {
     const bg = Skia.Path.Make()
     bg.addRect(Skia.XYWHRect(0, 0, SW, SH_APPROX))
 
@@ -86,44 +168,25 @@ function SolumMapCanvas({ selectedId }: { selectedId: TerritoryId | null }) {
     }))
 
     const flowPaths = PRIMA_FLOW_PAIRS.map(pair => {
-      const fromDef = TERRITORY_DEFS.find(t => t.id === pair.from)!
-      const toDef   = TERRITORY_DEFS.find(t => t.id === pair.to)!
+      const from = TERRITORY_DEFS.find(t => t.id === pair.from)!
+      const to   = TERRITORY_DEFS.find(t => t.id === pair.to)!
       const p = Skia.Path.Make()
-      p.moveTo(fromDef.center[0], fromDef.center[1])
-      p.quadTo(pair.cp[0], pair.cp[1], toDef.center[0], toDef.center[1])
+      p.moveTo(from.center[0], from.center[1])
+      p.quadTo(pair.cp[0], pair.cp[1], to.center[0], to.center[1])
       return p
     })
 
-    const MAP_W = MAP_WIDTH
-    const cx = MAP_W - 38, cy = 598, r = 28
-    const cp = Skia.Path.Make()
-    cp.addCircle(cx, cy, r)
-    cp.addCircle(cx, cy, r * 0.28)
-    for (let i = 0; i < 8; i++) {
-      const angle = (i * Math.PI) / 4 - Math.PI / 2
-      const iR = i % 2 === 0 ? r * 0.34 : r * 0.52
-      cp.moveTo(cx + Math.cos(angle) * iR, cy + Math.sin(angle) * iR)
-      cp.lineTo(cx + Math.cos(angle) * (r - 1), cy + Math.sin(angle) * (r - 1))
-    }
-
-    return { territoryPaths, flowPaths, compassPath: cp, bgPath: bg }
+    return { territoryPaths, flowPaths, bgPath: bg }
   }, [])
 
   return (
     <Canvas style={StyleSheet.absoluteFill}>
-      {/* Background */}
       <SkiaPath path={bgPath} color="#0D0D18" />
 
       <Group transform={[{ scale: SCALE }]}>
-        {/* Prima flow lines */}
+        {/* Animated Prima flow lines */}
         {flowPaths.map((p, i) => (
-          <SkiaPath
-            key={i}
-            path={p}
-            color="rgba(200,150,12,0.14)"
-            style="stroke"
-            strokeWidth={1}
-          />
+          <PrimaFlowLine key={i} path={p} index={i} flowProgress={flowProgress} />
         ))}
 
         {/* Territories */}
@@ -132,13 +195,33 @@ function SolumMapCanvas({ selectedId }: { selectedId: TerritoryId | null }) {
           if (!state) return null
           const visited  = state.playerProgress.surfaceFloors > 0
           const selected = id === selectedId
-          const overlay  = corruptionOverlayColor(state.corruptionLevel)
+          const level    = state.corruptionLevel
+          const baseOverlay = corruptionBaseColor(level)
+          const hasSevere = visited && level > 60
 
           return (
             <Group key={id}>
-              <SkiaPath path={path} color={visited ? hexAlpha(color, 0.28) : '#12121E'} />
-              {overlay && visited && <SkiaPath path={path} color={overlay} />}
-              {!visited && <SkiaPath path={path} color="rgba(8,8,20,0.62)" />}
+              {/* Animated fill — territory breathes */}
+              <Group opacity={fillPulse}>
+                <SkiaPath path={path} color={visited ? hexAlpha(color, 1) : '#12121E'} />
+              </Group>
+
+              {/* Static corruption overlay (20-60%) */}
+              {baseOverlay && visited && (
+                <SkiaPath path={path} color={baseOverlay} />
+              )}
+
+              {/* Animated fog for severe corruption (>60%) */}
+              {hasSevere && (
+                <Group opacity={fogPulse}>
+                  <SkiaPath path={path} color="rgba(120,15,15,0.58)" />
+                </Group>
+              )}
+
+              {/* Fog of war for unvisited */}
+              {!visited && <SkiaPath path={path} color="rgba(8,8,20,0.68)" />}
+
+              {/* Border */}
               <SkiaPath
                 path={path}
                 color={visited ? hexAlpha(color, selected ? 1.0 : 0.65) : '#2A2A3E'}
@@ -148,16 +231,51 @@ function SolumMapCanvas({ selectedId }: { selectedId: TerritoryId | null }) {
             </Group>
           )
         })}
-
-        {/* Alchemic compass */}
-        <SkiaPath
-          path={compassPath}
-          color="rgba(200,150,12,0.28)"
-          style="stroke"
-          strokeWidth={1}
-        />
       </Group>
     </Canvas>
+  )
+}
+
+// ─── Boss available indicators ───────────────────────────────────────────────
+
+function BossIndicators() {
+  const territories = useWorldStore(s => s.territories)
+  const pulse = useSharedValue(0.6)
+
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.0, { duration: 700 }),
+        withTiming(0.5, { duration: 700 })
+      ),
+      -1, true
+    )
+  }, [])
+
+  const indicatorStyle = useAnimatedStyle(() => ({ opacity: pulse.value }))
+
+  return (
+    <>
+      {TERRITORY_DEFS.map(def => {
+        const state = territories[def.id]
+        if (!state) return null
+        const { depthsFloors, bossDefeated } = state.playerProgress
+        if (depthsFloors < 10 || bossDefeated) return null
+
+        const left = def.center[0] * SCALE - 10
+        const top  = def.center[1] * SCALE - 28
+
+        return (
+          <Animated.View
+            key={def.id}
+            style={[styles.bossIndicator, { left, top, borderColor: def.color }, indicatorStyle]}
+            pointerEvents="none"
+          >
+            <Text style={[styles.bossIndicatorText, { color: def.color }]}>!</Text>
+          </Animated.View>
+        )
+      })}
+    </>
   )
 }
 
@@ -176,17 +294,11 @@ function TerritoryLabels({ selectedId }: { selectedId: TerritoryId | null }) {
         const top      = def.labelAnchor[1] * SCALE - 12
 
         return (
-          <View
-            key={def.id}
-            style={[styles.label, { left, top }]}
-            pointerEvents="none"
-          >
-            <Text
-              style={[
-                styles.labelText,
-                { color: visited ? (selected ? '#FFFFFF' : def.color) : '#44445A' },
-              ]}
-            >
+          <View key={def.id} style={[styles.label, { left, top }]} pointerEvents="none">
+            <Text style={[
+              styles.labelText,
+              { color: visited ? (selected ? '#FFFFFF' : def.color) : '#44445A' },
+            ]}>
               {visited ? def.name.toUpperCase() : `? ${def.name.toUpperCase()}`}
             </Text>
             {visited && (
@@ -233,12 +345,10 @@ function MapHUD() {
   return (
     <>
       <View style={[styles.corruptionBar, { top }]}>
-        <View
-          style={[
-            styles.corruptionFill,
-            { width: `${globalCorruption}%` as `${number}%`, backgroundColor: corrColor },
-          ]}
-        />
+        <View style={[styles.corruptionFill, {
+          width: `${globalCorruption}%` as `${number}%`,
+          backgroundColor: corrColor,
+        }]} />
       </View>
 
       <View style={[styles.playerInfo, { top: top + 6 }]}>
@@ -318,12 +428,10 @@ function TerritoryPanel({
               </Text>
             </View>
             <View style={styles.inlineBar}>
-              <View
-                style={[styles.inlineFill, {
-                  flex: state.corruptionLevel / 100,
-                  backgroundColor: corrColor,
-                }]}
-              />
+              <View style={[styles.inlineFill, {
+                flex: state.corruptionLevel / 100,
+                backgroundColor: corrColor,
+              }]} />
               <View style={{ flex: 1 - state.corruptionLevel / 100 }} />
             </View>
           </View>
@@ -381,13 +489,42 @@ export default function MapScreen() {
   const [selectedId, setSelectedId]   = useState<TerritoryId | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const { initialize, isLoading }     = useGameStore()
-  const panelX                        = useSharedValue(SW * 0.75)
 
-  React.useEffect(() => { initialize() }, [])
-
+  // Panel animation
+  const panelX = useSharedValue(SW * 0.75)
   const panelStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: panelX.value }],
   }))
+
+  // Map idle animations — created once in the root component
+  const fillPulse   = useSharedValue(0.28)
+  const fogPulse    = useSharedValue(0.4)
+  const flowProgress = useSharedValue(0)
+
+  useEffect(() => {
+    initialize()
+
+    fillPulse.value = withRepeat(
+      withSequence(
+        withTiming(0.22, { duration: 2000 }),
+        withTiming(0.32, { duration: 2000 })
+      ),
+      -1, true
+    )
+
+    fogPulse.value = withRepeat(
+      withSequence(
+        withTiming(0.28, { duration: 1400 }),
+        withTiming(0.55, { duration: 1400 })
+      ),
+      -1, true
+    )
+
+    flowProgress.value = withRepeat(
+      withTiming(1, { duration: 20000, easing: Easing.linear }),
+      -1, false
+    )
+  }, [])
 
   const openPanel = useCallback((id: TerritoryId) => {
     setSelectedId(id)
@@ -400,7 +537,7 @@ export default function MapScreen() {
     setTimeout(() => setIsPanelOpen(false), 260)
   }, [panelX])
 
-  const territories = useWorldStore(s => s.territories)
+  const territories   = useWorldStore(s => s.territories)
   const selectedDef   = selectedId ? TERRITORY_DEFS.find(t => t.id === selectedId) ?? null : null
   const selectedState = selectedId ? (territories[selectedId] ?? null) : null
 
@@ -414,9 +551,16 @@ export default function MapScreen() {
 
   return (
     <View style={styles.root}>
-      <SolumMapCanvas selectedId={selectedId} />
+      <SolumMapCanvas
+        selectedId={selectedId}
+        fillPulse={fillPulse}
+        fogPulse={fogPulse}
+        flowProgress={flowProgress}
+      />
       <TerritoryLabels selectedId={selectedId} />
       <TerritoryTapTargets onSelect={openPanel} />
+      <BossIndicators />
+      <AlchemicCompassView />
       <MapHUD />
 
       {isPanelOpen && (
@@ -444,9 +588,6 @@ export default function MapScreen() {
     </View>
   )
 }
-
-// approximate screen height for bg rect (no need to be exact)
-const SH_APPROX = 900
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -476,6 +617,29 @@ const styles = StyleSheet.create({
 
   tapTarget: { position: 'absolute', width: 80, height: 80 },
 
+  compassContainer: {
+    position: 'absolute',
+    right: 12,
+    width: 52,
+    height: 52,
+  },
+
+  bossIndicator: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  bossIndicatorText: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 11,
+    lineHeight: 14,
+  },
+
   corruptionBar: { position: 'absolute', left: 0, right: 0, height: 2, backgroundColor: '#1A1A24' },
   corruptionFill: { height: 2 },
 
@@ -499,8 +663,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   playerInitial: { fontFamily: 'Cinzel_700Bold', fontSize: 14, color: '#0A0A0F' },
-  playerName: { fontFamily: 'Cinzel_700Bold', fontSize: 11, color: theme.colors.gold.light, letterSpacing: 1 },
-  playerLevel: { fontFamily: 'Rajdhani_500Medium', fontSize: 9, color: theme.colors.text.secondary, letterSpacing: 1.5 },
+  playerName: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 11,
+    color: theme.colors.gold.light,
+    letterSpacing: 1,
+  },
+  playerLevel: {
+    fontFamily: 'Rajdhani_500Medium',
+    fontSize: 9,
+    color: theme.colors.text.secondary,
+    letterSpacing: 1.5,
+  },
 
   resources: {
     position: 'absolute',
@@ -514,7 +688,12 @@ const styles = StyleSheet.create({
   },
   resourceRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   resourceIcon: { fontFamily: 'Rajdhani_500Medium', fontSize: 9, color: theme.colors.gold.main },
-  resourceValue: { fontFamily: 'Rajdhani_600SemiBold', fontSize: 12, color: theme.colors.text.primary, letterSpacing: 0.5 },
+  resourceValue: {
+    fontFamily: 'Rajdhani_600SemiBold',
+    fontSize: 12,
+    color: theme.colors.text.primary,
+    letterSpacing: 0.5,
+  },
 
   backdrop: {
     position: 'absolute',
@@ -553,9 +732,19 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   closeBtnText: { fontFamily: 'Rajdhani_500Medium', fontSize: 16, color: theme.colors.text.secondary },
-  panelTitle: { fontFamily: 'Cinzel_700Bold', fontSize: 18, color: theme.colors.text.primary, letterSpacing: 2 },
+  panelTitle: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 18,
+    color: theme.colors.text.primary,
+    letterSpacing: 2,
+  },
   panelFaction: { fontFamily: 'Rajdhani_500Medium', fontSize: 10, letterSpacing: 2 },
-  panelAffinity: { fontFamily: 'Rajdhani_500Medium', fontSize: 9, color: theme.colors.text.secondary, letterSpacing: 1 },
+  panelAffinity: {
+    fontFamily: 'Rajdhani_500Medium',
+    fontSize: 9,
+    color: theme.colors.text.secondary,
+    letterSpacing: 1,
+  },
   panelScroll: { flex: 1 },
 
   panelSection: {
@@ -574,7 +763,12 @@ const styles = StyleSheet.create({
   },
   statBlock: { gap: 6 },
   statLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  statLabel: { fontFamily: 'Rajdhani_500Medium', fontSize: 10, color: theme.colors.text.secondary, letterSpacing: 1 },
+  statLabel: {
+    fontFamily: 'Rajdhani_500Medium',
+    fontSize: 10,
+    color: theme.colors.text.secondary,
+    letterSpacing: 1,
+  },
   statValue: { fontFamily: 'Rajdhani_600SemiBold', fontSize: 12 },
   inlineBar: {
     flexDirection: 'row',
