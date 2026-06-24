@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Stack, router, SplashScreen } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useFonts } from 'expo-font'
@@ -9,6 +9,7 @@ import {
   LibreBaskerville_400Regular_Italic,
 } from '@expo-google-fonts/libre-baskerville'
 import { supabase } from '@/lib/supabase'
+import { SplashAnimation } from '@/components/splash/SplashAnimation'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -22,10 +23,17 @@ export default function RootLayout() {
     LibreBaskerville_400Regular_Italic,
   })
 
+  // Controla a splash animada — esconde após o vídeo completar
+  const [splashDone, setSplashDone] = useState(false)
+
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync()
+      return
     }
+    // Fallback: se useFonts travar em produção, esconde após 4s
+    const timeout = setTimeout(() => SplashScreen.hideAsync(), 4000)
+    return () => clearTimeout(timeout)
   }, [fontsLoaded, fontError])
 
   useEffect(() => {
@@ -57,6 +65,14 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(game)" />
       </Stack>
+
+      {/* Splash animada — sobrepõe tudo até o vídeo completar */}
+      {!splashDone && (
+        <SplashAnimation
+          onComplete={() => setSplashDone(true)}
+          minDuration={3500}
+        />
+      )}
     </>
   )
 }
