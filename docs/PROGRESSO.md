@@ -471,9 +471,31 @@ Modificações em `app/(game)/index.tsx`:
 
 ---
 
-## Próximo Passo: Passo 22 — Segundo Bioma + Sistema de Facções
+**Passo 22 — Segundo Bioma + Sistema de Facções** ✅ concluído em 2026-06-24
 
-Ler `docs/04_economia.md` e `docs/08_narrativa.md` antes de implementar.
+Arquivos criados/modificados:
+
+- **`src/systems/progression/dungeon.ts`** — `BiomeId` expandido para incluir os 7 territórios de Solum (`axis`, `kethara`, `mnemos`, `verdania`, `cinderfall`, `limiar`, `venula`); configs completas por território (faction AI patterns, attrBoost/Penalty, unlockCondition); helper `isTerritoryBiome(id)`
+
+- **`src/systems/world/factionEvents.ts`** (novo) — 14 eventos de facção (2 por território), cada um com 2 escolhas que afetam reputação de 1-3 territórios; `pickFactionEvent(territory, seed): FactionEventDef | null` (determinístico por seed)
+
+- **`src/components/world/FactionEventModal.tsx`** (novo) — Modal com cor da facção, título do evento, descrição (itálico), 2 botões de escolha mostrando o impacto de reputação, botão "Ignorar"
+
+- **`app/(game)/dungeon/between.tsx`** — Integração do sistema de facções: após completar andares pares (2, 4, 6...) em biomas de território, rola evento de facção e exibe FactionEventModal; escolha aplica `addReputation` no worldStore; também chama `recordFloorCompleted(territory, 'surface')` conectando progresso do mapa
+
+- **`app/(game)/dungeon/[biomeId].tsx`** — Quando bioma é um território: exibe cor e label da facção no header, barra de reputação atual com tier label (Aliado/Amigável/Neutro/Hostil/Inimigo), lore do território no infoCard
+
+- **`app/(game)/profile.tsx`** — Adicionada seção "Reputação de Facções" com barra para cada um dos 7 territórios (cor da facção, valor numérico, tier label); tela agora usa ScrollView
+
+> **D29:** `BiomeId` inclui os 7 TerritoryIds — o `dungeonStore` e `generateFloorEnemies` funcionam diretamente com territory IDs sem mapeamento adicional, pois `BIOMES[territoryId]` agora retorna uma config válida.
+
+305 testes passando; `tsc --noEmit` limpo.
+
+---
+
+## Próximo Passo: Passo 23 — Narrativa Camada 1 + Onboarding
+
+Ler `docs/08_narrativa_lore_mundo.md` (Parte 5, Camada 1) antes de implementar.
 
 ---
 
@@ -509,7 +531,7 @@ Ler `docs/04_economia.md` e `docs/08_narrativa.md` antes de implementar.
 ### Fase 4 — MVP Publicável
 - [x] Passo 20 — Mapa de Solum com React Native Skia (ler doc 11 antes)
 - [x] Passo 21 — Estados do mapa: corrupção, progresso, fronteiras políticas
-- [ ] Passo 22 — Segundo bioma + sistema de facções (ler docs 04 e 08 antes)
+- [x] Passo 22 — Segundo bioma + sistema de facções (ler docs 04 e 08 antes)
 - [ ] Passo 23 — Narrativa Camada 1 + onboarding (ler doc 08 antes)
 - [ ] Passo 24 — Polimento visual + checklist de publicação (ler doc 10 antes)
 

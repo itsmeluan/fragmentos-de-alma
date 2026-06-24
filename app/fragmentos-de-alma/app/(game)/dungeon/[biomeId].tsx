@@ -6,8 +6,11 @@ import { theme } from '@/lib/theme'
 import { useGameStore } from '@/store/gameStore'
 import { useBattleStore } from '@/store/battleStore'
 import { useDungeonStore } from '@/store/dungeonStore'
-import { BIOMES, isBiomeUnlocked } from '@/systems/progression/dungeon'
+import { useWorldStore } from '@/store/worldStore'
+import { BIOMES, isBiomeUnlocked, isTerritoryBiome } from '@/systems/progression/dungeon'
 import type { BiomeId } from '@/systems/progression/dungeon'
+import { getTerritoryDef } from '@/systems/world/mapData'
+import type { TerritoryId } from '@/systems/world/types'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 
 export default function BiomeDungeonScreen() {
@@ -15,13 +18,17 @@ export default function BiomeDungeonScreen() {
   const { heroes } = useGameStore()
   const { initBattle } = useBattleStore()
   const { startDungeon, currentEnemies } = useDungeonStore()
+  const territories = useWorldStore(s => s.territories)
 
   const id = biomeId as BiomeId
   const config = BIOMES[id]
+  const isTerritory = isTerritoryBiome(id)
+  const territoryDef = isTerritory ? getTerritoryDef(id as TerritoryId) : null
+  const territoryState = isTerritory ? territories[id as TerritoryId] : null
+  const factionColor = territoryDef?.color ?? theme.colors.gold.main
 
   const canStart = heroes.length >= 6
 
-  // Verificação de desbloqueio (simplificado — usa apenas fusionCount = heroes.length como proxy)
   const unlockProgress = {
     fusionCount: heroes.length,
     highestRarityOwned: heroes.reduce((best, h) => {
@@ -61,15 +68,54 @@ export default function BiomeDungeonScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, isTerritory && { borderBottomColor: factionColor + '55' }]}>
         <Pressable onPress={() => router.back()} hitSlop={16}>
           <Text style={styles.headerBack}>←</Text>
         </Pressable>
-        <Text style={styles.biomeTitle}>{config.label.toUpperCase()}</Text>
+        <View style={styles.headerCenter}>
+          <Text style={[styles.biomeTitle, isTerritory && { color: factionColor }]}>
+            {config.label.toUpperCase()}
+          </Text>
+          {territoryDef && (
+            <Text style={[styles.headerFaction, { color: factionColor + 'BB' }]}>
+              {territoryDef.affinityLabel.toUpperCase()}
+            </Text>
+          )}
+        </View>
         <View style={{ width: 32 }} />
       </View>
 
       <View style={styles.content}>
+        {/* Reputação com a facção (território) */}
+        {isTerritory && territoryState && (
+          <View style={[styles.reputationCard, { borderColor: factionColor + '55' }]}>
+            <Text style={[styles.reputationLabel, { color: factionColor }]}>
+              REPUTAÇÃO COM {territoryDef?.factionLabel.toUpperCase()}
+            </Text>
+            <View style={styles.reputationBarTrack}>
+              <View style={[
+                styles.reputationBarFill,
+                {
+                  width: `${Math.max(0, (territoryState.factionReputation + 100) / 2)}%` as `${number}%`,
+                  backgroundColor: territoryState.factionReputation >= 0 ? factionColor : theme.colors.red.vivid,
+                },
+              ]} />
+              <View style={styles.reputationCenter} />
+            </View>
+            <Text style={[styles.reputationValue, {
+              color: territoryState.factionReputation >= 0 ? factionColor : theme.colors.red.vivid,
+            }]}>
+              {territoryState.factionReputation > 0 ? '+' : ''}{territoryState.factionReputation}
+              {' · '}
+              {territoryState.factionReputation >= 50 ? 'Aliado'
+                : territoryState.factionReputation >= 20 ? 'Amigável'
+                : territoryState.factionReputation <= -50 ? 'Inimigo'
+                : territoryState.factionReputation <= -20 ? 'Hostil'
+                : 'Neutro'}
+            </Text>
+          </View>
+        )}
+
         {/* Info do bioma */}
         <View style={styles.infoCard}>
           <Text style={styles.infoRow}>
@@ -84,6 +130,9 @@ export default function BiomeDungeonScreen() {
             <Text style={styles.infoKey}>Padrões de IA  </Text>
             <Text style={styles.infoVal}>{config.aiPatterns.slice(0, 3).join(' · ')}</Text>
           </Text>
+          {territoryDef && (
+            <Text style={styles.loreText}>{territoryDef.lore}</Text>
+          )}
         </View>
 
         {/* Modificadores de bioma */}
@@ -162,13 +211,65 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border.subtle,
   },
   headerBack: { color: theme.colors.gold.main, fontSize: 20, minWidth: 32, minHeight: 32, lineHeight: 32 },
+  headerCenter: { flex: 1, alignItems: 'center', gap: 2 },
   biomeTitle: {
     fontFamily: theme.typography.title.fontFamily,
-    fontSize: 15,
+    fontSize: 13,
     color: theme.colors.gold.main,
-    letterSpacing: 3,
-    flexShrink: 1,
+    letterSpacing: 2,
     textAlign: 'center',
+  },
+  headerFaction: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 8,
+    letterSpacing: 2,
+    textAlign: 'center',
+  },
+
+  reputationCard: {
+    padding: theme.spacing.md,
+    borderWidth: 0.5,
+    backgroundColor: theme.colors.background.secondary,
+    gap: theme.spacing.xs,
+  },
+  reputationLabel: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 8,
+    letterSpacing: 2,
+  },
+  reputationBarTrack: {
+    height: 4,
+    backgroundColor: theme.colors.background.tertiary,
+    borderRadius: 2,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  reputationBarFill: { height: 4, borderRadius: 2 },
+  reputationCenter: {
+    position: 'absolute',
+    left: '50%',
+    top: 0,
+    width: 1,
+    height: 4,
+    backgroundColor: theme.colors.border.subtle,
+  },
+  reputationValue: {
+    fontFamily: theme.typography.stat.fontFamily,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    textAlign: 'right',
+  },
+
+  loreText: {
+    fontFamily: theme.typography.body.fontFamily,
+    fontSize: 11,
+    color: theme.colors.text.secondary,
+    lineHeight: 18,
+    fontStyle: 'italic',
+    marginTop: theme.spacing.xs,
+    borderTopWidth: 0.5,
+    borderTopColor: theme.colors.border.subtle,
+    paddingTop: theme.spacing.sm,
   },
 
   content: { flex: 1, padding: theme.spacing.lg, gap: theme.spacing.lg },

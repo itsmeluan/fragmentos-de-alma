@@ -9,7 +9,15 @@ import type { EnemySpec } from '../battle/types'
 
 // ─── Configuração de biomas ───────────────────────────────────────────────────
 
-export type BiomeId = 'abismo' | 'celestial' | 'genesis' | 'forja' | 'eter' | 'vazio'
+// Biomas originais + territórios de Solum (mapa vivo)
+export type BiomeId =
+  | 'abismo' | 'celestial' | 'genesis' | 'forja' | 'eter' | 'vazio'
+  | 'axis' | 'kethara' | 'mnemos' | 'verdania' | 'cinderfall' | 'limiar' | 'venula'
+
+/** True se o biome ID corresponde a um território do mapa */
+export function isTerritoryBiome(id: BiomeId): boolean {
+  return ['axis','kethara','mnemos','verdania','cinderfall','limiar','venula'].includes(id)
+}
 
 export interface BiomeConfig {
   id: BiomeId
@@ -82,6 +90,71 @@ export const BIOMES: Record<BiomeId, BiomeConfig> = {
     attrBoost: { forca: 15, ressonancia: 15 },
     attrPenalty: {},
     unlockCondition: { type: 'legacyEcos', min: 50 },
+  },
+
+  // ─── Territórios de Solum (do mapa vivo) ────────────────────────────────────
+  axis: {
+    id: 'axis',
+    label: 'Axis — Arquitetos do Véu',
+    floors: 5,
+    aiPatterns: ['aggressive', 'support', 'random'],
+    attrBoost: { ressonancia: 20 },
+    attrPenalty: { agilidade: 10 },
+    unlockCondition: { type: 'always' },
+  },
+  kethara: {
+    id: 'kethara',
+    label: 'Kethara — Pedra Viva',
+    floors: 5,
+    aiPatterns: ['defensive', 'defensive', 'aggressive'],
+    attrBoost: { resistencia: 25 },
+    attrPenalty: { ressonancia: 10 },
+    unlockCondition: { type: 'always' },
+  },
+  mnemos: {
+    id: 'mnemos',
+    label: 'Mnemos — Véu dos Ecos',
+    floors: 6,
+    aiPatterns: ['support', 'random', 'defensive'],
+    attrBoost: { ressonancia: 25, vontade: 10 },
+    attrPenalty: { forca: 15 },
+    unlockCondition: { type: 'fusions', min: 5 },
+  },
+  verdania: {
+    id: 'verdania',
+    label: 'Verdânia — Jardim Perpétuo',
+    floors: 7,
+    aiPatterns: ['support', 'defensive', 'defensive'],
+    attrBoost: { aura: 25, vontade: 10 },
+    attrPenalty: {},
+    unlockCondition: { type: 'fusions', min: 10 },
+  },
+  cinderfall: {
+    id: 'cinderfall',
+    label: 'Cinderfall — Chama Negra',
+    floors: 7,
+    aiPatterns: ['aggressive', 'aggressive', 'random'],
+    attrBoost: { forca: 25, agilidade: 15 },
+    attrPenalty: { resistencia: 10 },
+    unlockCondition: { type: 'rarity', rarity: 'raro' },
+  },
+  limiar: {
+    id: 'limiar',
+    label: 'Limiar — Confraria do Limiar',
+    floors: 8,
+    aiPatterns: ['defensive', 'support', 'random'],
+    attrBoost: { vontade: 20, resistencia: 15 },
+    attrPenalty: { agilidade: 15 },
+    unlockCondition: { type: 'rarity', rarity: 'raro' },
+  },
+  venula: {
+    id: 'venula',
+    label: 'Vênula — Ordem Carmesim',
+    floors: 10,
+    aiPatterns: ['aggressive', 'aggressive', 'support'],
+    attrBoost: { forca: 20, resistencia: 15 },
+    attrPenalty: { vontade: 10 },
+    unlockCondition: { type: 'rarity', rarity: 'epico' },
   },
 }
 

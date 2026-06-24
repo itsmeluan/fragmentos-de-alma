@@ -1,12 +1,14 @@
 import React from 'react'
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native'
+import { View, Text, StyleSheet, Pressable, Alert, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { theme } from '@/lib/theme'
 import { useGameStore } from '@/store/gameStore'
+import { useWorldStore } from '@/store/worldStore'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { Button } from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase'
+import { TERRITORY_DEFS } from '@/systems/world/mapData'
 
 function StatBlock({ value, label }: { value: number | string; label: string }) {
   return (
@@ -19,6 +21,7 @@ function StatBlock({ value, label }: { value: number | string; label: string }) 
 
 export default function ProfileScreen() {
   const { player, heroes } = useGameStore()
+  const territories = useWorldStore(s => s.territories)
 
   async function handleLogout() {
     Alert.alert('Sair', 'Deseja encerrar a sessão?', [
@@ -45,7 +48,8 @@ export default function ProfileScreen() {
     : 0
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
+    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <ScrollView showsVerticalScrollIndicator={false}>
       {/* Avatar */}
       <View style={styles.avatarSection}>
         <View style={styles.avatar}>
@@ -101,9 +105,56 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      {/* Reputação de Facções */}
+      <View style={styles.factionsSection}>
+        <Text style={styles.sectionTitle}>REPUTAÇÃO DE FACÇÕES</Text>
+        {TERRITORY_DEFS.map(def => {
+          const state = territories[def.id]
+          const rep = state?.factionReputation ?? 0
+          const repPct = (rep + 100) / 2  // -100..+100 → 0..100%
+          const isPositive = rep >= 0
+          const tierLabel = rep >= 50 ? 'Aliado'
+            : rep >= 20 ? 'Amigável'
+            : rep <= -50 ? 'Inimigo'
+            : rep <= -20 ? 'Hostil'
+            : 'Neutro'
+
+          return (
+            <View key={def.id} style={styles.factionRow}>
+              <View style={styles.factionMeta}>
+                <Text style={[styles.factionName, { color: def.color }]}>
+                  {def.factionLabel}
+                </Text>
+                <Text style={[styles.factionTier, {
+                  color: isPositive ? def.color : theme.colors.red.vivid,
+                }]}>
+                  {tierLabel}
+                </Text>
+              </View>
+              <View style={styles.factionBarTrack}>
+                <View style={[
+                  styles.factionBarFill,
+                  {
+                    width: `${repPct}%` as `${number}%`,
+                    backgroundColor: isPositive ? def.color : theme.colors.red.vivid,
+                  },
+                ]} />
+                <View style={styles.factionCenter} />
+              </View>
+              <Text style={[styles.factionRepValue, {
+                color: isPositive ? def.color : theme.colors.red.vivid,
+              }]}>
+                {rep > 0 ? '+' : ''}{rep}
+              </Text>
+            </View>
+          )
+        })}
+      </View>
+
       <View style={styles.footer}>
         <Button label="Encerrar Sessão" onPress={handleLogout} variant="danger" />
       </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -224,8 +275,47 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     letterSpacing: 1,
   },
+  factionsSection: {
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+    borderTopWidth: 0.5,
+    borderTopColor: theme.colors.border.subtle,
+  },
+  factionRow: { gap: 5 },
+  factionMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  factionName: {
+    fontFamily: theme.typography.stat.fontFamily,
+    fontSize: 12,
+    letterSpacing: 0.5,
+  },
+  factionTier: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 9,
+    letterSpacing: 1.5,
+  },
+  factionBarTrack: {
+    height: 4,
+    backgroundColor: theme.colors.background.tertiary,
+    borderRadius: 2,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  factionBarFill: { height: 4, borderRadius: 2 },
+  factionCenter: {
+    position: 'absolute',
+    left: '50%',
+    top: 0,
+    width: 1,
+    height: 4,
+    backgroundColor: theme.colors.border.subtle,
+  },
+  factionRepValue: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 9,
+    letterSpacing: 0.5,
+    textAlign: 'right',
+  },
   footer: {
-    marginTop: 'auto',
     padding: theme.spacing.lg,
     borderTopWidth: 0.5,
     borderTopColor: theme.colors.border.subtle,

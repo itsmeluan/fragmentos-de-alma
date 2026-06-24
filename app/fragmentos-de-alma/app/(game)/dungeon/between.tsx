@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, Pressable, StyleSheet, ScrollView, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { theme } from '@/lib/theme'
 import { useDungeonStore, useDungeonProgress } from '@/store/dungeonStore'
 import { useBattleStore } from '@/store/battleStore'
+import { useWorldStore } from '@/store/worldStore'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { computeHpMax } from '@/systems/battle/engine'
-import { isBiomeComplete, BATTLES_PER_FLOOR } from '@/systems/progression/dungeon'
+import { isBiomeComplete, isTerritoryBiome, BATTLES_PER_FLOOR } from '@/systems/progression/dungeon'
+import { pickFactionEvent, type FactionEventDef, type FactionChoice } from '@/systems/world/factionEvents'
+import { FactionEventModal } from '@/components/world/FactionEventModal'
+import type { TerritoryId } from '@/systems/world/types'
 
 export default function BetweenBattlesScreen() {
   const { session, heroes, applyHpRecovery, nextEnemies, exitDungeon } = useDungeonStore()
   const { initBattle } = useBattleStore()
+  const { addReputation, recordFloorCompleted } = useWorldStore()
   const progress = useDungeonProgress()
   const [recoveryApplied, setRecoveryApplied] = useState(false)
+  const [pendingEvent, setPendingEvent] = useState<FactionEventDef | null>(null)
+  const eventChecked = useRef(false)
 
   // Aplica recuperação de HP ao entrar na tela
   useEffect(() => {
@@ -22,6 +29,33 @@ export default function BetweenBattlesScreen() {
       setRecoveryApplied(true)
     }
   }, [session, recoveryApplied, applyHpRecovery])
+
+  // Registra progresso do território e rola evento de facção ao completar andar
+  useEffect(() => {
+    if (eventChecked.current || !session) return
+    const isFloor = session.battleIndexInFloor === 0 && session.totalBattlesWon > 0
+    if (!isFloor) return
+    eventChecked.current = true
+
+    if (!isTerritoryBiome(session.biome)) return
+    const territory = session.biome as TerritoryId
+    recordFloorCompleted(territory, 'surface')
+
+    // Evento a cada andar par (2, 4, 6, …)
+    const completedFloor = session.currentFloor - 1
+    if (completedFloor % 2 !== 0) return
+    const seed = `${territory}-floor-${completedFloor}`
+    const event = pickFactionEvent(territory, seed)
+    if (event) setPendingEvent(event)
+  }, [session])
+
+  const handleFactionChoice = (choice: FactionChoice) => {
+    if (!session) return
+    Object.entries(choice.repChanges).forEach(([tid, delta]) => {
+      if (delta !== undefined) addReputation(tid as TerritoryId, delta)
+    })
+    setPendingEvent(null)
+  }
 
   const handleContinue = () => {
     if (!session || heroes.length < 6) return
@@ -60,6 +94,14 @@ export default function BetweenBattlesScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      {pendingEvent && (
+        <FactionEventModal
+          visible
+          event={pendingEvent}
+          onChoice={handleFactionChoice}
+          onSkip={() => setPendingEvent(null)}
+        />
+      )}
       <ScrollView contentContainerStyle={styles.content}>
 
         {/* Cabeçalho */}
