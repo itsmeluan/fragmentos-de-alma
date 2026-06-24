@@ -33,6 +33,12 @@ export default function GameLayout() {
       <Tabs.Screen
         name="fusion"
         options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="transmutation"
+        options={{
           tabBarIcon: ({ focused }) => <TabIcon name="fundir" active={focused} />,
         }}
       />

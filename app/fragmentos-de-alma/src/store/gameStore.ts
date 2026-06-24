@@ -6,6 +6,20 @@ import { calculateRarity } from '@/systems/genes/rarity'
 import { generateVisualParams } from '@/systems/visual/generator'
 import { generateName } from '@/utils/nameGenerator'
 import { generateSkills } from '@/systems/skills/generator'
+import { isHeroAwakened } from '@/systems/progression/legacy'
+import type { Eco, EcoCreateResult, ExtractCrystalsResult, EcoSkillRecord } from '@/systems/genes/eco'
+import {
+  buildSignatureKey,
+  calcEcoTransmutationCost,
+  calcLegacyScore,
+  canUseCatalystForRarity,
+  CRYSTAL_EXTRACTION_YIELD,
+  flattenSkills,
+  getHigherRarity,
+  mergeGenes,
+  mergeSkills,
+  RARITY_ORDER as ECO_RARITY_ORDER,
+} from '@/systems/genes/eco'
 
 // Fragmentos iniciais concedidos a um jogador novo (doc 09, Fase 1: "ganha
 // fragmentos iniciais... funde dois fragmentos para criar um herói").
@@ -65,6 +79,23 @@ function rowToHero(row: Record<string, unknown>): Hero {
   }
 }
 
+function rowToEco(row: Record<string, unknown>): Eco {
+  return {
+    id: row.id as string,
+    player_id: row.player_id as string,
+    created_at: row.created_at as string,
+    signature_origin: row.signature_origin as string,
+    signature_affinity: row.signature_affinity as string,
+    signature_core: row.signature_core as string,
+    signature_mutations: (row.signature_mutations as string[] | null) ?? [],
+    signature_key: row.signature_key as string,
+    best_genes: (row.best_genes as Record<string, number> | null) ?? {},
+    best_skills: (row.best_skills as EcoSkillRecord | null) ?? {},
+    rarity: row.rarity as Rarity,
+    absorption_count: (row.absorption_count as number) ?? 1,
+  }
+}
+
 // Dados do herói-filho montados pela tela de fusão (genoma já fundido).
 export interface FusionChildInput {
   name: string
@@ -80,7 +111,7 @@ export type FusionResult =
   | { ok: true; hero: Hero }
   | { ok: false; error: string }
 
-interface Player {
+export interface Player {
   id: string
   kaelName: string
   kaelLevel: number
@@ -92,17 +123,33 @@ interface Player {
   totalBattles: number
   totalWins: number
   unlockedBiomes: string[]
+  teamHeroIds: string[]
+  benchHeroIds: string[]
+  legacyScore: number
 }
 
 interface GameStore {
   player: Player | null
   heroes: Hero[]
+  ecos: Eco[]
   isLoading: boolean
   error: string | null
   initialize: () => Promise<void>
   loadHeroes: () => Promise<void>
+  loadEcos: () => Promise<void>
   grantStarterFragments: () => Promise<void>
   commitFusion: (parentA: Hero, parentB: Hero, child: FusionChildInput) => Promise<FusionResult>
+  commitCreateEco: (heroId: string) => Promise<EcoCreateResult>
+  commitExtractCrystals: (heroId: string) => Promise<ExtractCrystalsResult>
+  commitTransmutation: (
+    primaryEcoAId: string,
+    primaryEcoBId: string,
+    catalystEcoIds: string[],
+    child: FusionChildInput
+  ) => Promise<FusionResult>
+  setRoster: (teamIds: string[], benchIds: string[]) => Promise<void>
+  isInRoster: (heroId: string) => boolean
+  canRetireHero: (heroId: string) => boolean
   grantDungeonDrop: (biomeId?: string) => Promise<void>
   addHero: (hero: Hero) => void
   clearError: () => void
@@ -111,6 +158,7 @@ interface GameStore {
 export const useGameStore = create<GameStore>((set, get) => ({
   player: null,
   heroes: [],
+  ecos: [],
   isLoading: false,
   error: null,
 
@@ -155,10 +203,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
           totalBattles: playerRow.total_battles,
           totalWins: playerRow.total_wins,
           unlockedBiomes: playerRow.unlocked_biomes,
+          teamHeroIds: playerRow.team_hero_ids ?? [],
+          benchHeroIds: playerRow.bench_hero_ids ?? [],
+          legacyScore: playerRow.legacy_score ?? 0,
         },
       })
 
       await get().loadHeroes()
+      await get().loadEcos()
 
       // Jogador novo (nunca fundiu e sem heróis) → conceder fragmentos iniciais.
       // Sem isso o jogador fica em soft-lock: a Fusão exige 2 heróis e a dungeon
@@ -193,6 +245,67 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ heroes })
     } catch (e) {
       set({ error: e instanceof Error ? e.message : 'Erro ao carregar heróis.' })
+    }
+  },
+
+  loadEcos: async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from('ecos')
+        .select('*')
+        .eq('player_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      set({ ecos: (data ?? []).map((row) => rowToEco(row as Record<string, unknown>)) })
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : 'Erro ao carregar Ecos.' })
+    }
+  },
+
+  isInRoster: (heroId) => {
+    const player = get().player
+    if (!player) return false
+    return player.teamHeroIds.includes(heroId) || player.benchHeroIds.includes(heroId)
+  },
+
+  canRetireHero: (heroId) => {
+    const { heroes, isInRoster } = get()
+    if (isInRoster(heroId)) return false
+
+    const activeHeroes = heroes.filter((hero) => !hero.isRetired)
+    return activeHeroes.length > 6
+  },
+
+  setRoster: async (teamIds, benchIds) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const uniqueTeamIds = [...new Set(teamIds)].slice(0, 3)
+      const uniqueBenchIds = [...new Set(benchIds.filter((id) => !uniqueTeamIds.includes(id)))].slice(0, 3)
+
+      const { error } = await supabase
+        .from('players')
+        .update({
+          team_hero_ids: uniqueTeamIds,
+          bench_hero_ids: uniqueBenchIds,
+        })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      set((state) => ({
+        player: state.player
+          ? { ...state.player, teamHeroIds: uniqueTeamIds, benchHeroIds: uniqueBenchIds }
+          : null,
+      }))
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : 'Erro ao salvar roster.' })
     }
   },
 
@@ -315,6 +428,261 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return { ok: true, hero: rowToHero(childRow) }
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'Falha na fusão.' }
+    }
+  },
+
+  commitCreateEco: async (heroId) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return { ok: false, error: 'Não autenticado.' }
+
+      const { heroes, ecos, canRetireHero } = get()
+      if (!canRetireHero(heroId)) {
+        return { ok: false, error: 'Herói está no roster ou a coleção tem o mínimo de 6 heróis.' }
+      }
+
+      const hero = heroes.find((item) => item.id === heroId)
+      if (!hero) return { ok: false, error: 'Herói não encontrado.' }
+      if (!isHeroAwakened(hero)) {
+        return { ok: false, error: 'Apenas heróis no nível máximo (50) podem criar Ecos.' }
+      }
+
+      const signatureOrigin = hero.genome.essence.origin
+      const signatureAffinity = hero.genome.essence.affinity
+      const signatureCore = hero.genome.essence.core
+      const signatureMutations = hero.genome.mutations
+      const signatureKey = buildSignatureKey(
+        signatureOrigin,
+        signatureAffinity,
+        signatureCore,
+        signatureMutations,
+      )
+      const heroGenes = { ...hero.genome.attributes }
+      const heroSkills = flattenSkills(hero.skills)
+      const existingEco = ecos.find((eco) => eco.signature_key === signatureKey)
+
+      let resultEco: Eco
+      let absorbed = false
+
+      if (existingEco) {
+        const mergedGenes = mergeGenes(existingEco.best_genes, heroGenes)
+        const mergedSkills = mergeSkills(existingEco.best_skills, heroSkills)
+        const rarity = ECO_RARITY_ORDER.indexOf(hero.rarity) > ECO_RARITY_ORDER.indexOf(existingEco.rarity)
+          ? hero.rarity
+          : existingEco.rarity
+
+        const { data, error } = await supabase
+          .from('ecos')
+          .update({
+            best_genes: mergedGenes,
+            best_skills: mergedSkills,
+            rarity,
+            absorption_count: existingEco.absorption_count + 1,
+          })
+          .eq('id', existingEco.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        resultEco = rowToEco(data as Record<string, unknown>)
+        absorbed = true
+      } else {
+        const { data, error } = await supabase
+          .from('ecos')
+          .insert({
+            player_id: user.id,
+            signature_origin: signatureOrigin,
+            signature_affinity: signatureAffinity,
+            signature_core: signatureCore,
+            signature_mutations: signatureMutations,
+            signature_key: signatureKey,
+            best_genes: heroGenes,
+            best_skills: heroSkills,
+            rarity: hero.rarity,
+            absorption_count: 1,
+          })
+          .select()
+          .single()
+
+        if (error) throw error
+        resultEco = rowToEco(data as Record<string, unknown>)
+      }
+
+      const { error: retireErr } = await supabase
+        .from('heroes')
+        .update({ is_retired: true, retired_at: new Date().toISOString() })
+        .eq('id', heroId)
+      if (retireErr) throw retireErr
+
+      await get().loadEcos()
+      const newScore = calcLegacyScore(get().ecos)
+      const { error: playerErr } = await supabase
+        .from('players')
+        .update({ legacy_score: newScore })
+        .eq('id', user.id)
+      if (playerErr) throw playerErr
+
+      set((state) => ({
+        heroes: state.heroes.filter((item) => item.id !== heroId),
+        player: state.player ? { ...state.player, legacyScore: newScore } : null,
+      }))
+
+      return { ok: true, eco: resultEco, absorbed }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Erro ao criar Eco.' }
+    }
+  },
+
+  commitExtractCrystals: async (heroId) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return { ok: false, error: 'Não autenticado.' }
+
+      const { heroes, player, canRetireHero } = get()
+      if (!player) return { ok: false, error: 'Jogador não carregado.' }
+      if (!canRetireHero(heroId)) {
+        return { ok: false, error: 'Herói está no roster ou a coleção tem o mínimo de 6 heróis.' }
+      }
+
+      const hero = heroes.find((item) => item.id === heroId)
+      if (!hero) return { ok: false, error: 'Herói não encontrado.' }
+
+      const crystals = CRYSTAL_EXTRACTION_YIELD[hero.rarity]
+      const newCrystals = player.essenceCrystals + crystals
+
+      const { error: retireErr } = await supabase
+        .from('heroes')
+        .update({ is_retired: true, retired_at: new Date().toISOString() })
+        .eq('id', heroId)
+      if (retireErr) throw retireErr
+
+      const { error: playerErr } = await supabase
+        .from('players')
+        .update({ essence_crystals: newCrystals })
+        .eq('id', user.id)
+      if (playerErr) throw playerErr
+
+      set((state) => ({
+        heroes: state.heroes.filter((item) => item.id !== heroId),
+        player: state.player ? { ...state.player, essenceCrystals: newCrystals } : null,
+      }))
+
+      return { ok: true, crystals }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Erro ao extrair Cristais.' }
+    }
+  },
+
+  commitTransmutation: async (primaryEcoAId, primaryEcoBId, catalystEcoIds, child) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return { ok: false, error: 'Não autenticado.' }
+
+      const { ecos, player } = get()
+      if (!player) return { ok: false, error: 'Jogador não carregado.' }
+      if (primaryEcoAId === primaryEcoBId) return { ok: false, error: 'Escolha dois Ecos principais diferentes.' }
+
+      const primaryEcoA = ecos.find((eco) => eco.id === primaryEcoAId)
+      const primaryEcoB = ecos.find((eco) => eco.id === primaryEcoBId)
+      if (!primaryEcoA || !primaryEcoB) return { ok: false, error: 'Eco principal não encontrado.' }
+
+      const cost = calcEcoTransmutationCost(primaryEcoA, primaryEcoB)
+      if (player.soulFragments < cost.fragments) {
+        return { ok: false, error: `Fragmentos insuficientes (precisa de ${cost.fragments}).` }
+      }
+      if (player.essenceCrystals < cost.crystals) {
+        return { ok: false, error: `Cristais insuficientes (precisa de ${cost.crystals}).` }
+      }
+
+      const uniqueCatalystIds = [...new Set(catalystEcoIds)]
+      if (uniqueCatalystIds.length !== catalystEcoIds.length) {
+        return { ok: false, error: 'Catalisadores duplicados não são permitidos.' }
+      }
+      if (uniqueCatalystIds.length > 3) {
+        return { ok: false, error: 'Máximo de 3 catalisadores.' }
+      }
+      if (uniqueCatalystIds.includes(primaryEcoAId) || uniqueCatalystIds.includes(primaryEcoBId)) {
+        return { ok: false, error: 'Ecos principais não podem ser usados também como catalisadores.' }
+      }
+
+      const catalysts = uniqueCatalystIds.map((id) => ecos.find((eco) => eco.id === id))
+      if (catalysts.some((eco) => !eco)) {
+        return { ok: false, error: 'Eco catalisador não encontrado.' }
+      }
+
+      const invalidCatalyst = catalysts.find(
+        (eco) => eco && !canUseCatalystForRarity(eco.rarity, cost.rarity),
+      )
+      if (invalidCatalyst) {
+        return { ok: false, error: 'Catalisadores precisam ter raridade igual ou maior que a maior raridade dos Ecos principais.' }
+      }
+
+      const { data: childRow, error: childErr } = await supabase
+        .from('heroes')
+        .insert({
+          player_id: user.id,
+          name: child.name,
+          fusion_seed: child.fusionSeed,
+          genome: child.genome,
+          rarity: child.rarity,
+          visual_params: child.visualParams,
+          skills: child.skills,
+          level: 1,
+          xp: 0,
+          bond: 0,
+          ultimate_charge: 0,
+          parent_a_id: null,
+          parent_b_id: null,
+          generation: child.generation,
+          is_retired: false,
+        })
+        .select()
+        .single()
+      if (childErr) throw childErr
+
+      if (uniqueCatalystIds.length > 0) {
+        const { error: ecoErr } = await supabase
+          .from('ecos')
+          .delete()
+          .in('id', uniqueCatalystIds)
+        if (ecoErr) throw ecoErr
+      }
+
+      const remainingEcos = get().ecos.filter((eco) => !uniqueCatalystIds.includes(eco.id))
+      const newScore = calcLegacyScore(remainingEcos)
+      const newFragments = player.soulFragments - cost.fragments
+      const newCrystals = player.essenceCrystals - cost.crystals
+      const newFusions = player.totalFusions + 1
+
+      const { error: playerErr } = await supabase
+        .from('players')
+        .update({
+          soul_fragments: newFragments,
+          essence_crystals: newCrystals,
+          total_fusions: newFusions,
+          legacy_score: newScore,
+        })
+        .eq('id', user.id)
+      if (playerErr) throw playerErr
+
+      const newHero = rowToHero(childRow as Record<string, unknown>)
+      set((state) => ({
+        heroes: [newHero, ...state.heroes],
+        ecos: state.ecos.filter((eco) => !uniqueCatalystIds.includes(eco.id)),
+        player: state.player
+          ? {
+              ...state.player,
+              soulFragments: newFragments,
+              essenceCrystals: newCrystals,
+              totalFusions: newFusions,
+              legacyScore: newScore,
+            }
+          : null,
+      }))
+
+      return { ok: true, hero: newHero }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Erro na transmutação.' }
     }
   },
 

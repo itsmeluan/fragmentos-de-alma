@@ -6,7 +6,7 @@
 
 ## Leitura Obrigatória Antes de Qualquer Implementação
 
-Este documento é parte de um conjunto de 12 documentos de design. Antes de implementar qualquer sistema, o Claude Code deve ler os documentos relevantes:
+Este documento é parte de um conjunto de 13 documentos de design. Antes de implementar qualquer sistema, o Claude Code deve ler os documentos relevantes:
 
 | Documento | Conteúdo | Quando ler |
 |---|---|---|
@@ -21,6 +21,7 @@ Este documento é parte de um conjunto de 12 documentos de design. Antes de impl
 | `10_direcao_de_arte.md` | Paleta, tipografia, componentes visuais | Antes de qualquer elemento visual |
 | `11_mapa_de_solum.md` | Mapa vivo, navegação, estados, implementação | Antes da tela principal |
 | `12_endgame.md` | Torres, PvP, Fragmentos Ancestrais, Ciclos | Antes de sistemas de endgame |
+| `13_transmutacao.md` | Círculo de Transmutação, Ecos blueprint, roster protegido | Antes de implementar transmutação |
 
 ---
 
@@ -107,6 +108,16 @@ Jest + React Native Testing Library (testes)
 | D36 | Economia | **Fusão consome (aposenta) ambos os pais e cristaliza o gene mais forte de cada um** num registro `fragments` (`source='fusion_byproduct'`) — `commitFusion` no gameStore | Decisão do usuário (doc 01, "Morte e Legado": herói sacrificado para fusão tem genes cristalizados em fragmento reutilizável). Pais ficam `is_retired=true`. A UI de **injeção de gene** usando esses fragmentos é follow-up |
 | D37 | Economia | **Drop de fragmento ao concluir um andar de dungeon** (`grantDungeonDrop`, chamado em `battle.tsx` quando `battleIndexInFloor === 0` pós-vitória) | Necessário para fechar o loop: como a fusão agora consome os pais (D36), sem reabastecimento a coleção só encolheria. Doc 04 (`fragments.source='dungeon_drop'`). Coberto por `dungeon.test.ts` |
 | D38 | Polish/IDs | **IDs de bioma unificados** no `generator.ts` (chaves = BiomeId canônico de `dungeon.ts`); `generateFloorEnemies` passa o bioma; `players.unlocked_biomes` default → `kethara` (migration 006); profile exibe rótulo legível (`biomeLabel`). **Log de batalha** resolve o nome da habilidade (`skillNameById`) em vez do id cru ("active_0") | Três vocabulários de id divergiam (DB `cavernas_abismo` vs `abismo` vs `pináculo_celestial`); `unlocked_biomes` não era usado para gate. Migration 006 precisa ser aplicada via `supabase db push` |
+| D39 | Transmutação | **Migration 007** cria `ecos` como blueprints genéticos por assinatura (`UNIQUE(player_id, signature_key)`) e adiciona `team_hero_ids`, `bench_hero_ids`, `legacy_score` em `players`; **migration 008** credita recursos de teste para `m.luan.mobile@gmail.com` | Implementa `docs/13_transmutacao.md`; 008 é apenas desenvolvimento local e deve ser revisada antes de qualquer ambiente de produção |
+| D40 | Transmutação | `src/systems/genes/eco.ts` concentra tipos e funções puras de Eco: assinatura, score/tier de legado, merge de genes/skills, preview de absorção, validação de catalisador e chance de tier-up; coberto por `eco.test.ts` | Mantém regra de negócio fora da UI/store e preserva o padrão de sistemas puros em `src/systems/` |
+| D41 | Transmutação | `gameStore` ganhou `ecos`, `loadEcos`, `commitCreateEco`, `commitExtractCrystals`, `commitTransmutation`, `setRoster`, `isInRoster`, `canRetireHero` e campos de roster/legado em `Player` | O Círculo precisa persistir Ecos, proteger roster, consumir pais/catalisadores, recalcular `legacy_score` e manter a cristalização pós-fusão no schema real de `fragments` |
+| D42 | Transmutação | `app/(game)/transmutation.tsx` substitui a fusão simples com 3 abas; `fusion.tsx` virou redirect e a tab nova usa o ícone de fusão como **Círculo** | A tela antiga não cobria Eco/extração/catalisadores. A rota antiga continua funcional por redirecionamento |
+| D43 | Transmutação | Transmutação herda habilidades por slot com 70% de chance a partir do pool dos pais + skills dos Ecos catalisadores; 30% permanecem procedurais pelo genoma do filho | Cumpre `docs/13_transmutacao.md` sem refatorar o gerador procedural existente |
+| D44 | Transmutação | `RosterManager` foi criado e integrado à Coleção com autosave para 3 heróis de time + 3 de banco | O roster precisa ser gerenciado fora do Círculo e visível antes das operações destrutivas; a Coleção é a superfície natural para essa escolha |
+| D45 | Transmutação | **Criar Eco exige herói no nível máximo (50 / Despertar)**. Heróis abaixo do cap aparecem desabilitados na aba Criar Eco e o store retorna erro específico se chamado diretamente | Evita aposentadoria prematura e substitui o erro genérico visto no teste rápido por regra clara de UI e domínio |
+| D46 | Transmutação | **Transmutação agora usa Eco principal A + Eco principal B**, não heróis pais. Ecos principais não são consumidos; até 3 catalisadores são consumidos. Custo = Fragmentos + Cristais pela maior raridade dos Ecos principais (100/300/800/2000/5000 Fragmentos e 1/3/8/20/50/120 Cristais) | Correção de mecânica definida no teste rápido: a transmutação deve nascer de blueprints genéticos, não de heróis vivos |
+| D47 | Transmutação/UI | Tela **Almas** ganhou abas internas **Heróis** e **Ecos**; heróis em time/banco recebem frame/badge; tocar Eco abre sheet própria de detalhes; `Modal` ganhou modo `fill` para sheets longas | Corrige legibilidade da coleção, torna Ecos inspecionáveis e resolve sheet de detalhes aparecendo cortada/fora da tela |
+| D48 | Dados de teste | **Migration 009** reaplica créditos para `m.luan.mobile@gmail.com` e promove dois heróis ativos para nível 50 | Garante validação imediata de recursos e do fluxo Criar Eco com heróis capados, mantendo heróis nível 1 para verificar estado desabilitado |
 
 ---
 

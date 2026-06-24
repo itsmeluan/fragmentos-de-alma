@@ -19,6 +19,7 @@ O **Círculo de Transmutação** substitui a tela de Fusão simples por uma inte
 
 **Mecânica:**
 - O jogador seleciona um herói fora do roster
+- O herói precisa estar no **nível máximo (50 / Despertar)**
 - O herói é retirado da coleção (consumido / aposentado)
 - Um Eco com a assinatura genética do herói é criado ou **absorvido** em um Eco existente de mesma assinatura (ver § Absorção de Ecos abaixo)
 - A operação não custa Fragmentos nem Cristais — é a forma "nobre" de aposentar
@@ -48,27 +49,29 @@ O **Círculo de Transmutação** substitui a tela de Fusão simples por uma inte
 
 ---
 
-### 3. Transmutar Heróis
-**O que faz:** Evolução do sistema de Fusão original. Combina dois heróis pais para gerar um filho com possibilidade de **avanço de tier de raridade** quando catalisadores (Ecos) são usados.
+### 3. Transmutar por Ecos
+**O que faz:** Evolução do sistema de Fusão original. Combina dois **Ecos principais** para gerar um herói novo com possibilidade de **avanço de tier de raridade** quando outros Ecos são usados como catalisadores.
 
 **Mecânica completa:**
 
-#### Seleção de Pais
-- O jogador escolhe 2 heróis pais, ambos obrigatoriamente **fora do roster**
-- Ambos os pais são consumidos na transmutação
-- Custo em Fragmentos de Alma (pelo maior tier dos pais):
+#### Seleção de Ecos principais
+- O jogador escolhe 2 Ecos principais (Eco A + Eco B)
+- Os Ecos principais **não são consumidos** — são blueprints permanentes
+- O genoma-base da transmutação é montado pela assinatura genética + melhores genes absorvidos de cada Eco
+- Custo em Fragmentos de Alma e Cristais de Essência pelo maior tier dos dois Ecos principais:
 
-| Maior raridade entre os pais | Custo em Fragmentos |
-|---|---|
-| Comum | 100 |
-| Incomum | 300 |
-| Raro | 800 |
-| Épico | 2.000 |
-| Lendário | 5.000 |
+| Maior raridade entre os Ecos | Fragmentos | Cristais |
+|---|---:|---:|
+| Comum | 100 | 1 |
+| Incomum | 300 | 3 |
+| Raro | 800 | 8 |
+| Épico | 2.000 | 20 |
+| Lendário | 5.000 | 50 |
+| Único | 5.000 | 120 |
 
 #### Catalisadores (opcional)
 - O jogador pode adicionar **0, 1, 2 ou 3 Ecos como catalisadores**
-- Cada Eco deve ter raridade **igual ou maior** que a do herói de maior raridade entre os pais (impede turbo barato)
+- Cada Eco catalisador deve ter raridade **igual ou maior** que a do Eco principal de maior raridade (impede turbo barato)
 - Os catalisadores são consumidos na transmutação
 - Catalisadores concedem probabilidade de **+1 tier** no filho:
 
@@ -84,13 +87,14 @@ O **Círculo de Transmutação** substitui a tela de Fusão simples por uma inte
 
 #### Filho nascido
 - O filho nasce sempre em **nível 1**
-- O genoma é calculado pela lógica existente em `src/systems/genes/fusion.ts`
+- O genoma é calculado pela lógica existente em `src/systems/genes/fusion.ts`, usando genomas reconstruídos a partir dos Ecos principais
 - Cap de atributo do genoma base: **120 por gene** (o genoma fusionado é clampado — impede explosão de stats)
 - Habilidades: **70% herdadas do pool dos pais** (combinação de todas as skills dos dois pais, sorteio ponderado pela raridade) + **30% novas** geradas pelo genoma do filho
 - Cada catalisador Eco adiciona as melhores skills do Eco ao pool disponível para herança (aumenta a diversidade das skills herdadas)
 
 #### Cristalização pós-fusão
-- Após a transmutação, **o gene mais forte de cada pai é cristalizado** como fragmento em `fragments` com `source = 'fusion_byproduct'` (comportamento existente, mantido)
+- Transmutação por Ecos não aposenta heróis, então não gera `fragments` de `fusion_byproduct`
+- A cristalização pós-fusão continua existindo na fusão baseada em heróis, quando heróis reais são consumidos
 
 ---
 
@@ -231,11 +235,11 @@ Layout:
 - Mostra yield de Cristais antes de confirmar
 - Aviso visual se o herói está no banco (zona cinza de segurança)
 
-### Submenu Transmutar Heróis
-- Slot A (herói pai) + Slot B (herói pai)
+### Submenu Transmutar por Ecos
+- Slot A (Eco principal) + Slot B (Eco principal)
 - Painel de catalisadores (0–3 slots de Eco)
-- Preview do filho estimado: tier mínimo garantido + probabilidade de tier superior
-- Custo total visível (Fragmentos + Ecos consumidos)
+- Preview do filho estimado: custo em Fragmentos + Cristais, tier mínimo garantido e probabilidade de tier superior
+- Custo total visível (Fragmentos + Cristais + Ecos catalisadores consumidos)
 - Botão confirmar com animação do Círculo Alquímico (componente `AlchemicalCircle` existente)
 
 ---
@@ -298,10 +302,10 @@ commitCreateEco(heroId: string): Promise<{ ok: true; eco: Eco } | { ok: false; e
 // Extrair Cristais: retira herói, credita Cristais
 commitExtractCrystals(heroId: string): Promise<{ ok: true; crystals: number } | { ok: false; error: string }>
 
-// Transmutar: fusão com catalisadores opcionais, retira pais e Ecos usados
+// Transmutar: cria herói a partir de 2 Ecos principais + catalisadores opcionais
 commitTransmutation(
-  parentAId: string,
-  parentBId: string,
+  primaryEcoAId: string,
+  primaryEcoBId: string,
   catalystEcoIds: string[],  // 0–3 Ecos
   child: FusionChildInput
 ): Promise<FusionResult>

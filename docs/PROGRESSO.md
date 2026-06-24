@@ -6,6 +6,18 @@
 
 ## Estado Atual
 
+### Círculo de Transmutação (2026-06-24)
+Implementados os 8 passos do prompt de transmutação (ver D39–D44 em `docs/09_roadmap_mvp.md`): migration `007_transmutation.sql` com tabela `ecos` e roster/legacy em `players`; migration `008_test_data_luan.sql` para recursos de desenvolvimento; tipos e funções puras em `src/systems/genes/eco.ts`; `gameStore` expandido com Ecos, roster, criação/absorção, extração de Cristais e transmutação; nova tela `app/(game)/transmutation.tsx` com abas **Criar Eco**, **Extrair** e **Transmutar**; tab antiga `fusion` escondida/redirecionada para **Círculo**; `RosterManager` integrado à Coleção; `docs/00_documento_mestre.md` atualizado com o doc 13.
+
+Validação executada: `npx tsc --noEmit` limpo; `npm test -- --runInBand` com **15 suites / 318 testes passando**.
+
+Pontos de atenção: aplicar migrations via `supabase db push`; a migration 008 é apenas para ambiente local/desenvolvimento; `fuseGenomes` ainda recebe `seed`, mas usa `Math.random()` internamente (limitação herdada do motor atual).
+
+### Ajustes pós-teste rápido da Transmutação (2026-06-24)
+Corrigidos os pontos do teste rápido (ver D45–D48 em `docs/09_roadmap_mvp.md`): migrations 006–009 aplicadas no Supabase remoto linkado; `m.luan.mobile@gmail.com` recebeu 50.000 Fragmentos, 500 Cristais, todos os biomas e dois heróis ativos em nível 50 para validação. Criar Eco agora exige herói lvl 50, mostra heróis low-level desabilitados e explica a regra na UI. Transmutação agora usa **Eco A + Eco B** como fontes principais, consome Fragmentos + Cristais e opcionalmente consome até 3 Ecos catalisadores. Almas ganhou abas internas **Heróis/Ecos**, Ecos têm sheet de detalhe, heróis em time/banco têm badge/frame, e sheets longas usam `Modal fill` para caber na tela.
+
+Validação executada após ajustes: `npx tsc --noEmit` limpo; `npm test -- --runInBand` com **15 suites / 320 testes passando**.
+
 ### Correção da jornada inicial (2026-06-24)
 Testado o fluxo completo no Simulador iOS. O novo jogador estava em soft-lock: 0 heróis, sem forma de criar o primeiro (Fusão exige 2, dungeon exige 6), e o registro `players` nem era criado no signup (recursos 0/0/0). Corrigido (ver D31–D34 em `docs/09_roadmap_mvp.md`): `initialize` cria o `players` se faltar; jogador novo recebe **6 fragmentos iniciais**; dungeon/torre ganharam Stack próprio e a tab bar some na batalha (não dá mais pra sair sem querer); hint inicial aponta para Kethara. **Verificado ponta a ponta**: login → mapa (500/5/0) → coleção (6 heróis) → Kethara → batalha jogável (turnos, roda de ações, skills, alvo) → Fusão cria herói de Geração 2.
 As 3 pendências menores foram resolvidas (ver D35–D38 em `docs/09_roadmap_mvp.md`):

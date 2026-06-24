@@ -14,7 +14,7 @@ O jogo é jogável com uma mão, na vertical, com batalha por turnos. Tem mundo 
 
 ## Como Ler Este Projeto
 
-Este projeto tem **12 documentos de design** e **1 documento técnico** (este). Cada documento cobre um sistema. Eles foram escritos em ordem de criação e se referem uns aos outros.
+Este projeto tem **13 documentos de design** e **1 documento técnico** (este). Cada documento cobre um sistema. Eles foram escritos em ordem de criação e se referem uns aos outros.
 
 **Regra fundamental:** antes de implementar qualquer sistema, leia o documento correspondente. Os documentos contêm decisões de design que não são óbvias e que afetam a implementação.
 
@@ -38,12 +38,13 @@ Este projeto tem **12 documentos de design** e **1 documento técnico** (este). 
 | 10 | `10_direcao_de_arte.md` | Paleta, tipografia, linguagem visual, componentes, animações | Qualquer elemento visual |
 | 11 | `11_mapa_de_solum.md` | Mapa vivo, navegação, estados, territórios, implementação | Tela principal / Hub |
 | 12 | `12_endgame.md` | Torres de Ressonância, PvP, Fragmentos Ancestrais, Ciclos | Sistemas de endgame |
+| 13 | `13_transmutacao.md` | Círculo de Transmutação: Criar Eco, Extrair Cristais, Transmutar Heróis | Antes de implementar transmutação |
 
 ### Ordem de Leitura Recomendada
 
 Se estiver começando do zero, leia nessa ordem:
 ```
-09 → 01 → 02 → 03 → 06 → 07 → 04 → 05 → 08 → 10 → 11 → 12
+09 → 01 → 02 → 03 → 06 → 07 → 04 → 05 → 08 → 10 → 11 → 12 → 13
 ```
 *(técnico primeiro, depois sistemas de jogo, depois narrativa, arte e endgame)*
 

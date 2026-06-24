@@ -1,5 +1,5 @@
 import React from 'react'
-import { Modal as RNModal, View, Text, StyleSheet, Pressable } from 'react-native'
+import { Modal as RNModal, View, Text, StyleSheet, Pressable, type StyleProp, type ViewStyle } from 'react-native'
 import { theme } from '@/lib/theme'
 import { CornerBracket } from './Ornaments'
 
@@ -8,9 +8,11 @@ interface ModalProps {
   title?: string
   onClose: () => void
   children: React.ReactNode
+  fill?: boolean
+  containerStyle?: StyleProp<ViewStyle>
 }
 
-export function Modal({ visible, title, onClose, children }: ModalProps) {
+export function Modal({ visible, title, onClose, children, fill, containerStyle }: ModalProps) {
   return (
     <RNModal
       visible={visible}
@@ -20,7 +22,10 @@ export function Modal({ visible, title, onClose, children }: ModalProps) {
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.container} onPress={() => {}}>
+        <Pressable
+          style={[styles.container, fill && styles.containerFill, containerStyle]}
+          onPress={() => {}}
+        >
           <View style={styles.topAccent} />
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <CornerBracket position="tl" />
@@ -54,6 +59,9 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.xxl,
     paddingTop: theme.spacing.md,
     maxHeight: '90%',
+  },
+  containerFill: {
+    height: '88%',
   },
   topAccent: {
     height: 2,

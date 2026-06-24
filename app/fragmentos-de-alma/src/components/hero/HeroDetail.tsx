@@ -44,7 +44,11 @@ export function HeroDetail({ hero }: HeroDetailProps) {
   ]
 
   return (
-    <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Cabeçalho */}
       <View style={styles.header}>
         <HeroVisual hero={hero} size="detail" style={{ alignSelf: 'center' }} />
@@ -99,7 +103,8 @@ export function HeroDetail({ hero }: HeroDetailProps) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
+  scroll: { flex: 1, minHeight: 0 },
+  scrollContent: { paddingBottom: theme.spacing.xxl },
   header: { alignItems: 'center', paddingVertical: theme.spacing.lg, gap: theme.spacing.sm },
   name: {
     ...theme.typography.title,

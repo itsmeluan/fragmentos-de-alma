@@ -14,18 +14,29 @@ const RARITY_LABEL: Record<string, string> = {
 interface HeroCardProps {
   hero: Hero
   onPress: (hero: Hero) => void
+  rosterRole?: 'team' | 'bench'
+  disabled?: boolean
+  disabledLabel?: string
 }
 
-export function HeroCard({ hero, onPress }: HeroCardProps) {
+export function HeroCard({ hero, onPress, rosterRole, disabled, disabledLabel }: HeroCardProps) {
   const rarityColor = theme.colors.rarity[hero.rarity]
   return (
     <RarityFrame rarity={hero.rarity}>
       <Pressable
         onPress={() => {
+          if (disabled) return
           Haptics.selectionAsync().catch(() => {})
           onPress(hero)
         }}
-        style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+        disabled={disabled}
+        style={({ pressed }) => [
+          styles.card,
+          rosterRole === 'team' && styles.teamCard,
+          rosterRole === 'bench' && styles.benchCard,
+          disabled && styles.disabledCard,
+          pressed && !disabled && styles.pressed,
+        ]}
       >
         <View style={styles.visualWrap}>
           <HeroVisual hero={hero} size="card" style={{ width: '100%', height: 110, borderRadius: 0, borderWidth: 0 }} />
@@ -33,6 +44,16 @@ export function HeroCard({ hero, onPress }: HeroCardProps) {
           <View style={styles.affinityBadge}>
             <AlchemyGlyph type={hero.genome.essence.affinity} size={18} />
           </View>
+          {rosterRole && (
+            <View style={[styles.rosterBadge, rosterRole === 'team' ? styles.teamBadge : styles.benchBadge]}>
+              <Text style={styles.rosterBadgeText}>{rosterRole === 'team' ? 'TIME' : 'BANCO'}</Text>
+            </View>
+          )}
+          {disabled && (
+            <View style={styles.disabledOverlay}>
+              <Text style={styles.disabledLabel}>{disabledLabel ?? 'INDISPONÍVEL'}</Text>
+            </View>
+          )}
         </View>
         <View style={styles.info}>
           <Text style={styles.name} numberOfLines={1}>{hero.name}</Text>
@@ -58,6 +79,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minHeight: 48,
   },
+  teamCard: {
+    borderWidth: 1,
+    borderColor: theme.colors.gold.main,
+    backgroundColor: theme.colors.gold.dark + '18',
+  },
+  benchCard: {
+    borderWidth: 1,
+    borderColor: theme.colors.blue.ice,
+    backgroundColor: theme.colors.blue.cobalt + '24',
+  },
+  disabledCard: { opacity: 0.42 },
   pressed: { opacity: 0.85 },
   visualWrap: { position: 'relative' },
   affinityBadge: {
@@ -69,6 +101,43 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.primary + 'CC',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  rosterBadge: {
+    position: 'absolute',
+    left: 6,
+    top: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderWidth: 0.5,
+  },
+  teamBadge: {
+    backgroundColor: theme.colors.gold.main,
+    borderColor: theme.colors.gold.light,
+  },
+  benchBadge: {
+    backgroundColor: theme.colors.blue.cobalt,
+    borderColor: theme.colors.blue.ice,
+  },
+  rosterBadgeText: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 8,
+    color: theme.colors.background.primary,
+    letterSpacing: 1,
+  },
+  disabledOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(10,10,15,0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing.sm,
+  },
+  disabledLabel: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 10,
+    color: theme.colors.text.primary,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    textAlign: 'center',
   },
   info: { padding: theme.spacing.sm, gap: 3 },
   name: {
