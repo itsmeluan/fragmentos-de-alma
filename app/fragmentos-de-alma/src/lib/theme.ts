@@ -69,6 +69,12 @@ export const theme = {
       lineHeight: 22,
       color: '#E8E0D0',
     },
+    bodyItalic: {
+      fontFamily: 'LibreBaskerville_400Regular_Italic',
+      fontSize: 14,
+      lineHeight: 22,
+      color: '#E8E0D0',
+    },
   },
 
   spacing: {

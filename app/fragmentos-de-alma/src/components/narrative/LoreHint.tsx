@@ -72,10 +72,9 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
-    fontFamily: theme.typography.body.fontFamily,
+    fontFamily: 'LibreBaskerville_400Regular_Italic',
     fontSize: 12,
     color: theme.colors.text.secondary,
     lineHeight: 18,
-    fontStyle: 'italic',
   },
 })

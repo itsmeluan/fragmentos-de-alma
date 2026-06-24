@@ -1,5 +1,6 @@
 import React from 'react'
 import { Pressable, Text, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native'
+import * as Haptics from 'expo-haptics'
 import { theme } from '@/lib/theme'
 
 type Variant = 'primary' | 'secondary' | 'danger'
@@ -14,9 +15,18 @@ interface ButtonProps {
 }
 
 export function Button({ label, onPress, variant = 'primary', disabled, loading, style }: ButtonProps) {
+  const handlePress = () => {
+    Haptics.impactAsync(
+      variant === 'danger'
+        ? Haptics.ImpactFeedbackStyle.Heavy
+        : Haptics.ImpactFeedbackStyle.Light
+    ).catch(() => {})
+    onPress()
+  }
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.base,

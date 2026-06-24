@@ -517,9 +517,42 @@ Arquivos criados/modificados:
 
 ---
 
-## Próximo Passo: Passo 24 — Sistema de Recompensas e Loot
+**Passo 24 — Polimento Visual + Checklist de Publicação** ✅ concluído em 2026-06-24
 
-Ler `docs/04_economia.md` antes de implementar.
+Implementado conforme `docs/10_direcao_de_arte.md`:
+
+- **`app/_layout.tsx`** — Carrega `LibreBaskerville_400Regular_Italic` (fonte italic real, não síntese)
+- **`src/lib/theme.ts`** — Adicionado `typography.bodyItalic` com `LibreBaskerville_400Regular_Italic`
+- **`src/components/ui/Button.tsx`** — Haptic feedback via `expo-haptics` (Light em primary/secondary, Heavy em danger)
+- **`src/components/hero/HeroCard.tsx`** — `borderRadius: 0` (conforme doc 10: "cantos angulares, não arredondados"); `AlchemyGlyph` no canto superior direito (24×24, badge semitransparente); haptic `selectionAsync` ao toque
+- **`src/components/world/FactionEventModal.tsx`** — Haptic `notificationAsync(Success)` ao confirmar escolha de facção; fonte italic real na descrição
+- **`src/components/narrative/*.tsx`** — Fonte italic real substituindo `fontStyle: 'italic'` + síntese
+- **`app.json`** — Metadata completo: `bundleIdentifier: com.fragmentosde.alma`, `package: com.fragmentosde.alma`, `versionCode: 1`, `scheme: fragmentos-de-alma`, `supportsTablet: false`, `userInterfaceStyle: dark`
+- **`eas.json`** (novo) — Perfis EAS: development (devClient), preview (APK/internal), production (AAB/IPA + autoIncrement)
+
+> **D31:** `expo-haptics` estava no `package.json` mas não instalado — necessário `npm install expo-haptics --legacy-peer-deps` por conflito de peerDeps com `react-dom@19` no Expo SDK 56.
+
+> **D32:** Substituir `fontStyle: 'italic'` por `fontFamily: 'LibreBaskerville_400Regular_Italic'` — `fontStyle` com uma fonte Regular gera síntese pelo sistema operacional, não usa a fonte italic real. No iOS especialmente isso é perceptível.
+
+### Checklist de publicação (passos manuais restantes)
+
+- [ ] Criar conta no EAS: `npx eas login`
+- [ ] Iniciar projeto EAS: `npx eas init` (preenche `projectId` no `app.json`)
+- [ ] Criar ícone app (1024×1024px PNG): espiral dupla que se fragmenta nas extremidades (ver doc 10 seção 8)
+- [ ] Criar splash screen (1284×2778px): `#0A0A0F` com glifo `◈` centralizado em dourado
+- [ ] Criar conta App Store Connect e Google Play Console
+- [ ] Preencher `ascAppId` e `appleTeamId` em `eas.json`
+- [ ] Criar `google-service-account.json` para deploy Android
+- [ ] Build de produção: `npx eas build --platform all --profile production`
+- [ ] Submit: `npx eas submit --platform all --profile production`
+
+305 testes passando; `tsc --noEmit` limpo.
+
+---
+
+## Próximo Passo: Passo 25 (se houver)
+
+O checklist de 24 passos foi concluído. Ver `docs/09_roadmap_mvp.md` para próximas fases.
 
 ---
 
@@ -557,7 +590,7 @@ Ler `docs/04_economia.md` antes de implementar.
 - [x] Passo 21 — Estados do mapa: corrupção, progresso, fronteiras políticas
 - [x] Passo 22 — Segundo bioma + sistema de facções (ler docs 04 e 08 antes)
 - [x] Passo 23 — Narrativa Camada 1 + onboarding (ler doc 08 antes)
-- [ ] Passo 24 — Polimento visual + checklist de publicação (ler doc 10 antes)
+- [x] Passo 24 — Polimento visual + checklist de publicação (ler doc 10 antes)
 
 ### Pós-MVP — Endgame (doc 12)
 - [ ] Passo 25 — Torres de Ressonância

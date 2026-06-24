@@ -4,7 +4,10 @@ import { StatusBar } from 'expo-status-bar'
 import { useFonts } from 'expo-font'
 import { Cinzel_400Regular, Cinzel_700Bold } from '@expo-google-fonts/cinzel'
 import { Rajdhani_500Medium, Rajdhani_600SemiBold } from '@expo-google-fonts/rajdhani'
-import { LibreBaskerville_400Regular } from '@expo-google-fonts/libre-baskerville'
+import {
+  LibreBaskerville_400Regular,
+  LibreBaskerville_400Regular_Italic,
+} from '@expo-google-fonts/libre-baskerville'
 import { supabase } from '@/lib/supabase'
 
 SplashScreen.preventAutoHideAsync()
@@ -16,6 +19,7 @@ export default function RootLayout() {
     Rajdhani_500Medium,
     Rajdhani_600SemiBold,
     LibreBaskerville_400Regular,
+    LibreBaskerville_400Regular_Italic,
   })
 
   useEffect(() => {

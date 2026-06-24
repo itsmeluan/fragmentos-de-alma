@@ -160,12 +160,11 @@ const styles = StyleSheet.create({
     marginHorizontal: SW * 0.1,
   },
   body: {
-    fontFamily: theme.typography.body.fontFamily,
+    fontFamily: 'LibreBaskerville_400Regular_Italic',
     fontSize: 14,
     color: theme.colors.text.secondary,
     lineHeight: 22,
     textAlign: 'center',
-    fontStyle: 'italic',
   },
   dots: {
     flexDirection: 'row',

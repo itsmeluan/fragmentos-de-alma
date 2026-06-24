@@ -132,12 +132,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   text: {
-    fontFamily: theme.typography.body.fontFamily,
+    fontFamily: 'LibreBaskerville_400Regular_Italic',
     fontSize: 16,
     color: theme.colors.text.primary,
     lineHeight: 28,
     textAlign: 'center',
-    fontStyle: 'italic',
   },
   ornament: {
     fontFamily: theme.typography.title.fontFamily,

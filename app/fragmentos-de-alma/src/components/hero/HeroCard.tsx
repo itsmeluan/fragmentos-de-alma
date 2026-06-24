@@ -1,8 +1,9 @@
 import React from 'react'
 import { View, Text, Pressable, StyleSheet } from 'react-native'
+import * as Haptics from 'expo-haptics'
 import { theme } from '@/lib/theme'
 import { HeroVisual } from './HeroVisual'
-import { RarityFrame } from '@/components/ui/Ornaments'
+import { RarityFrame, AlchemyGlyph } from '@/components/ui/Ornaments'
 import type { Hero } from '@/systems/genes/types'
 
 const RARITY_LABEL: Record<string, string> = {
@@ -20,19 +21,27 @@ export function HeroCard({ hero, onPress }: HeroCardProps) {
   return (
     <RarityFrame rarity={hero.rarity}>
       <Pressable
-        onPress={() => onPress(hero)}
+        onPress={() => {
+          Haptics.selectionAsync().catch(() => {})
+          onPress(hero)
+        }}
         style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       >
-        <HeroVisual hero={hero} size="card" style={{ width: '100%', height: 110, borderRadius: 0, borderWidth: 0 }} />
+        <View style={styles.visualWrap}>
+          <HeroVisual hero={hero} size="card" style={{ width: '100%', height: 110, borderRadius: 0, borderWidth: 0 }} />
+          {/* Glifo de afinidade — canto superior direito */}
+          <View style={styles.affinityBadge}>
+            <AlchemyGlyph type={hero.genome.essence.affinity} size={18} />
+          </View>
+        </View>
         <View style={styles.info}>
           <Text style={styles.name} numberOfLines={1}>{hero.name}</Text>
           <View style={styles.meta}>
             <Text style={[styles.rarity, { color: rarityColor }]}>{RARITY_LABEL[hero.rarity]}</Text>
-            <Text style={styles.essence}>{hero.genome.essence.affinity}</Text>
-          </View>
-          <View style={styles.levelRow}>
-            <Text style={styles.levelLabel}>Nv.</Text>
-            <Text style={styles.level}>{hero.level}</Text>
+            <View style={styles.levelRow}>
+              <Text style={styles.levelLabel}>Nv.</Text>
+              <Text style={styles.level}>{hero.level}</Text>
+            </View>
           </View>
         </View>
       </Pressable>
@@ -45,12 +54,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background.secondary,
     borderWidth: 0,
-    borderRadius: theme.border.radius.sm,
+    borderRadius: 0,
     overflow: 'hidden',
     minHeight: 48,
   },
   pressed: { opacity: 0.85 },
-  info: { padding: theme.spacing.sm, gap: 2 },
+  visualWrap: { position: 'relative' },
+  affinityBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    backgroundColor: theme.colors.background.primary + 'CC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  info: { padding: theme.spacing.sm, gap: 3 },
   name: {
     fontFamily: theme.typography.heroName.fontFamily,
     fontSize: 13,
@@ -64,12 +84,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
-  essence: {
-    fontFamily: theme.typography.label.fontFamily,
-    fontSize: 9,
-    color: theme.colors.text.secondary,
-  },
-  levelRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3, marginTop: 1 },
+  levelRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
   levelLabel: {
     fontFamily: theme.typography.label.fontFamily,
     fontSize: 9,

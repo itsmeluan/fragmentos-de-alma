@@ -2,6 +2,7 @@ import React from 'react'
 import {
   View, Text, Pressable, StyleSheet, Modal,
 } from 'react-native'
+import * as Haptics from 'expo-haptics'
 import { theme } from '@/lib/theme'
 import type { FactionEventDef, FactionChoice } from '@/systems/world/factionEvents'
 import type { TerritoryId } from '@/systems/world/types'
@@ -51,7 +52,10 @@ export function FactionEventModal({ visible, event, onChoice, onSkip }: FactionE
                   { borderColor: factionColor },
                   pressed && styles.choiceBtnPressed,
                 ]}
-                onPress={() => onChoice(choice)}
+                onPress={() => {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {})
+                    onChoice(choice)
+                  }}
                 accessibilityRole="button"
                 accessibilityLabel={choice.label}
               >
@@ -110,11 +114,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   description: {
-    fontFamily: theme.typography.body.fontFamily,
+    fontFamily: 'LibreBaskerville_400Regular_Italic',
     fontSize: 13,
     color: theme.colors.text.secondary,
     lineHeight: 20,
-    fontStyle: 'italic',
   },
   divider: { height: 0.5 },
   choices: { gap: 10 },
