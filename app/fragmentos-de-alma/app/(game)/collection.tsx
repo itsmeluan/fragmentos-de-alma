@@ -8,6 +8,8 @@ import { HeroCard } from '@/components/hero/HeroCard'
 import { HeroDetail } from '@/components/hero/HeroDetail'
 import { Modal } from '@/components/ui/Modal'
 import type { Hero, Rarity } from '@/systems/genes/types'
+import { useNarrativeStore } from '@/store/narrativeStore'
+import { LoreHint } from '@/components/narrative/LoreHint'
 
 const RARITY_FILTERS: { label: string; value: Rarity | 'all' }[] = [
   { label: 'Todos', value: 'all' },
@@ -36,8 +38,16 @@ export default function CollectionScreen() {
   const { heroes, loadHeroes, isLoading } = useGameStore()
   const { selectedHero, setSelectedHero } = useUiStore()
   const [filter, setFilter] = useState<Rarity | 'all'>('all')
+  const { hasSeenHint, markHintSeen } = useNarrativeStore()
+  const [showHint, setShowHint] = useState(false)
 
-  useEffect(() => { loadHeroes() }, [])
+  useEffect(() => {
+    loadHeroes()
+    if (!hasSeenHint('collection-first')) {
+      setShowHint(true)
+      markHintSeen('collection-first')
+    }
+  }, [])
 
   const filtered = filter === 'all' ? heroes : heroes.filter(h => h.rarity === filter)
 
@@ -97,6 +107,14 @@ export default function CollectionScreen() {
       >
         {selectedHero && <HeroDetail hero={selectedHero} />}
       </Modal>
+
+      {showHint && (
+        <LoreHint
+          id="collection-first"
+          text="Cada fragmento de alma carrega um genoma único. Dois heróis jamais são iguais."
+          onDismiss={() => setShowHint(false)}
+        />
+      )}
     </SafeAreaView>
   )
 }

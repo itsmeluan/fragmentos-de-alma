@@ -25,6 +25,10 @@ import {
 import { theme } from '@/lib/theme'
 import type { TerritoryId, TerritoryState } from '@/systems/world/types'
 import type { TerritoryDef } from '@/systems/world/mapData'
+import { useNarrativeStore } from '@/store/narrativeStore'
+import { OnboardingModal } from '@/components/narrative/OnboardingModal'
+import { PrologueModal } from '@/components/narrative/PrologueModal'
+import { LoreHint } from '@/components/narrative/LoreHint'
 
 const { width: SW } = Dimensions.get('window')
 const SCALE = SW / MAP_WIDTH
@@ -490,6 +494,21 @@ export default function MapScreen() {
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const { initialize, isLoading }     = useGameStore()
 
+  const {
+    loaded: narrativeLoaded,
+    onboardingDone,
+    prologueDone,
+    load: loadNarrative,
+    completeOnboarding,
+    completePrologue,
+    hasSeenHint,
+    markHintSeen,
+  } = useNarrativeStore()
+
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showPrologue, setShowPrologue]     = useState(false)
+  const [showMapHint, setShowMapHint]       = useState(false)
+
   // Panel animation
   const panelX = useSharedValue(SW * 0.75)
   const panelStyle = useAnimatedStyle(() => ({
@@ -503,6 +522,7 @@ export default function MapScreen() {
 
   useEffect(() => {
     initialize()
+    loadNarrative()
 
     fillPulse.value = withRepeat(
       withSequence(
@@ -525,6 +545,36 @@ export default function MapScreen() {
       -1, false
     )
   }, [])
+
+  // Onboarding + prologue gate — decide what to show once narrative state is loaded
+  useEffect(() => {
+    if (!narrativeLoaded) return
+    if (!onboardingDone) {
+      setShowOnboarding(true)
+    } else if (!prologueDone) {
+      setShowPrologue(true)
+    } else if (!hasSeenHint('map-first')) {
+      setShowMapHint(true)
+      markHintSeen('map-first')
+    }
+  }, [narrativeLoaded])
+
+  const handleOnboardingDone = () => {
+    setShowOnboarding(false)
+    completeOnboarding().then(() => {
+      if (!prologueDone) setShowPrologue(true)
+    })
+  }
+
+  const handlePrologueDone = () => {
+    setShowPrologue(false)
+    completePrologue().then(() => {
+      if (!hasSeenHint('map-first')) {
+        setShowMapHint(true)
+        markHintSeen('map-first')
+      }
+    })
+  }
 
   const openPanel = useCallback((id: TerritoryId) => {
     setSelectedId(id)
@@ -585,6 +635,25 @@ export default function MapScreen() {
           />
         </Animated.View>
       )}
+
+      {/* Hint contextual do mapa */}
+      {showMapHint && (
+        <LoreHint
+          id="map-first"
+          text="Os fluxos de Prima conectam os territórios de Solum. Toque em um território para explorar."
+          onDismiss={() => setShowMapHint(false)}
+        />
+      )}
+
+      {/* Onboarding e Prólogo — ordem importa */}
+      <OnboardingModal
+        visible={showOnboarding}
+        onComplete={handleOnboardingDone}
+      />
+      <PrologueModal
+        visible={showPrologue && !showOnboarding}
+        onComplete={handlePrologueDone}
+      />
     </View>
   )
 }

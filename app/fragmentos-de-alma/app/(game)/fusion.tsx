@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View, Text, StyleSheet, Pressable, Modal as RNModal,
   ScrollView,
@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/Button'
 import { AlchemicalCircle } from '@/components/fusion/AlchemicalCircle'
 import { CornerBracket } from '@/components/ui/Ornaments'
 import { supabase } from '@/lib/supabase'
+import { useNarrativeStore } from '@/store/narrativeStore'
+import { LoreHint } from '@/components/narrative/LoreHint'
 import { fuseGenomes } from '@/systems/genes/fusion'
 import { calculateRarity } from '@/systems/genes/rarity'
 import { generateVisualParams } from '@/systems/visual/generator'
@@ -89,6 +91,15 @@ export default function FusionScreen() {
   const [selectorSlot, setSelectorSlot] = useState<'A' | 'B' | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { hasSeenHint, markHintSeen } = useNarrativeStore()
+  const [showHint, setShowHint] = useState(false)
+
+  useEffect(() => {
+    if (!hasSeenHint('fusion-first')) {
+      setShowHint(true)
+      markHintSeen('fusion-first')
+    }
+  }, [])
 
   const canFuse = fusionSlotA !== null && fusionSlotB !== null && fusionSlotA.id !== fusionSlotB.id
 
@@ -201,6 +212,14 @@ export default function FusionScreen() {
         onClose={() => setSelectorSlot(null)}
         excludeId={selectorSlot === 'A' ? fusionSlotB?.id : fusionSlotA?.id}
       />
+
+      {showHint && (
+        <LoreHint
+          id="fusion-first"
+          text="A fusão não combina — ela cria. O que nasce nunca existiu antes em nenhum lugar de Solum."
+          onDismiss={() => setShowHint(false)}
+        />
+      )}
 
       {/* Revelação */}
       {revelationHero && (

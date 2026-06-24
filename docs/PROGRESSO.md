@@ -493,9 +493,33 @@ Arquivos criados/modificados:
 
 ---
 
-## Próximo Passo: Passo 23 — Narrativa Camada 1 + Onboarding
+**Passo 23 — Narrativa Camada 1 + Onboarding** ✅ concluído em 2026-06-24
 
-Ler `docs/08_narrativa_lore_mundo.md` (Parte 5, Camada 1) antes de implementar.
+Arquivos criados/modificados:
+
+- **`src/store/narrativeStore.ts`** (novo) — Zustand store com AsyncStorage: persiste `onboardingDone`, `prologueDone`, `seenHints[]`; expose `load()`, `completeOnboarding()`, `completePrologue()`, `markHintSeen(id)`, `hasSeenHint(id)`
+
+- **`src/components/narrative/OnboardingModal.tsx`** (novo) — 3 páginas (Solum, Kael, A Jornada); dots de paginação; botões "Próximo" / "Começar" + skip; modal full-screen
+
+- **`src/components/narrative/PrologueModal.tsx`** (novo) — 7 beats narrativos do prólogo de Kael (origem em Crena, ataque dos Corrompidos, descoberta da fusão, morte do mentor pelos Arquitetos do Véu, partida); barra de progresso linear no topo; citação de Kael no beat 7
+
+- **`src/components/narrative/LoreHint.tsx`** (novo) — hint não-bloqueante com Animated (fade in/out), auto-dismiss em 5s, toque para dispensar; borda esquerda dourada; flutua acima da tab bar
+
+- **`app/(game)/index.tsx`** (atualizado) — detecta state do narrativeStore após `loadNarrative()`; mostra onboarding → prólogo → hint do mapa em sequência
+
+- **`app/(game)/collection.tsx`** (atualizado) — hint `collection-first` na primeira visita
+
+- **`app/(game)/fusion.tsx`** (atualizado) — hint `fusion-first` na primeira visita
+
+> **D30:** `narrativeStore.load()` deve ser chamado explicitamente (não no construtor) para evitar corrida com hidratação do AuthContext. A tela de mapa chama `loadNarrative()` dentro do `useEffect` de inicialização.
+
+305 testes passando; `tsc --noEmit` limpo.
+
+---
+
+## Próximo Passo: Passo 24 — Sistema de Recompensas e Loot
+
+Ler `docs/04_economia.md` antes de implementar.
 
 ---
 
@@ -532,7 +556,7 @@ Ler `docs/08_narrativa_lore_mundo.md` (Parte 5, Camada 1) antes de implementar.
 - [x] Passo 20 — Mapa de Solum com React Native Skia (ler doc 11 antes)
 - [x] Passo 21 — Estados do mapa: corrupção, progresso, fronteiras políticas
 - [x] Passo 22 — Segundo bioma + sistema de facções (ler docs 04 e 08 antes)
-- [ ] Passo 23 — Narrativa Camada 1 + onboarding (ler doc 08 antes)
+- [x] Passo 23 — Narrativa Camada 1 + onboarding (ler doc 08 antes)
 - [ ] Passo 24 — Polimento visual + checklist de publicação (ler doc 10 antes)
 
 ### Pós-MVP — Endgame (doc 12)
