@@ -133,22 +133,33 @@ function buildHeroSignature(hero: Hero): string {
   )
 }
 
+function getRetireBlockReason(
+  hero: Hero,
+  player: Player | null,
+  activeCount: number,
+): string | null {
+  if (player?.teamHeroIds.includes(hero.id) || player?.benchHeroIds.includes(hero.id)) {
+    return 'No roster'
+  }
+  if (activeCount <= 6) return 'Mínimo 6 heróis'
+  return null
+}
+
 export default function TransmutationScreen() {
   const {
     player,
     heroes,
     ecos,
     isLoading,
-    canRetireHero,
     commitCreateEco,
     commitExtractCrystals,
     commitTransmutation,
   } = useGameStore()
   const [activeTab, setActiveTab] = useState<ActiveTab>('eco')
 
-  const retirableHeroes = useMemo(
-    () => heroes.filter((hero) => !hero.isRetired && canRetireHero(hero.id)),
-    [heroes, canRetireHero],
+  const activeHeroes = useMemo(
+    () => heroes.filter((hero) => !hero.isRetired),
+    [heroes],
   )
 
   return (
@@ -174,7 +185,9 @@ export default function TransmutationScreen() {
 
       {activeTab === 'eco' && (
         <CreateEcoTab
-          heroes={retirableHeroes}
+          heroes={activeHeroes}
+          activeCount={activeHeroes.length}
+          player={player}
           ecos={ecos}
           isLoading={isLoading}
           onCommit={commitCreateEco}
@@ -182,7 +195,9 @@ export default function TransmutationScreen() {
       )}
       {activeTab === 'crystals' && (
         <ExtractCrystalsTab
-          heroes={retirableHeroes}
+          heroes={activeHeroes}
+          activeCount={activeHeroes.length}
+          player={player}
           isLoading={isLoading}
           onCommit={commitExtractCrystals}
         />
@@ -201,11 +216,15 @@ export default function TransmutationScreen() {
 
 function CreateEcoTab({
   heroes,
+  activeCount,
+  player,
   ecos,
   isLoading,
   onCommit,
 }: {
   heroes: Hero[]
+  activeCount: number
+  player: Player | null
   ecos: Eco[]
   isLoading: boolean
   onCommit: (heroId: string) => Promise<EcoCreateResult>
@@ -216,6 +235,16 @@ function CreateEcoTab({
   const getExistingEco = useCallback(
     (hero: Hero) => ecos.find((eco) => eco.signature_key === buildHeroSignature(hero)) ?? null,
     [ecos],
+  )
+
+  const getDisabledLabel = useCallback(
+    (hero: Hero): string | null => {
+      const blockReason = getRetireBlockReason(hero, player, activeCount)
+      if (blockReason) return blockReason
+      if (!isHeroAwakened(hero)) return 'Requer nível 50'
+      return null
+    },
+    [player, activeCount],
   )
 
   const selectedEco = selected ? getExistingEco(selected) : null
@@ -255,7 +284,7 @@ function CreateEcoTab({
       <HeroGrid
         heroes={heroes}
         isLoading={isLoading}
-        emptyText="Nenhum herói disponível fora do roster."
+        emptyText="Nenhum herói na coleção ainda."
         renderOverlay={(hero) => (
           getExistingEco(hero) ? (
             <View style={styles.absorbBadge}>
@@ -263,7 +292,7 @@ function CreateEcoTab({
             </View>
           ) : null
         )}
-        getDisabledLabel={(hero) => isHeroAwakened(hero) ? null : 'Requer nível 50'}
+        getDisabledLabel={getDisabledLabel}
         onPress={setSelected}
       />
 
@@ -315,16 +344,25 @@ function CreateEcoTab({
 
 function ExtractCrystalsTab({
   heroes,
+  activeCount,
+  player,
   isLoading,
   onCommit,
 }: {
   heroes: Hero[]
+  activeCount: number
+  player: Player | null
   isLoading: boolean
   onCommit: (heroId: string) => Promise<ExtractCrystalsResult>
 }) {
   const [selected, setSelected] = useState<Hero | null>(null)
   const [confirming, setConfirming] = useState(false)
   const selectedYield = selected ? CRYSTAL_EXTRACTION_YIELD[selected.rarity] : 0
+
+  const getDisabledLabel = useCallback(
+    (hero: Hero): string | null => getRetireBlockReason(hero, player, activeCount),
+    [player, activeCount],
+  )
 
   const handleConfirm = async () => {
     if (!selected) return
@@ -353,12 +391,13 @@ function ExtractCrystalsTab({
       <HeroGrid
         heroes={heroes}
         isLoading={isLoading}
-        emptyText="Nenhum herói disponível fora do roster."
+        emptyText="Nenhum herói na coleção ainda."
         renderOverlay={(hero) => (
           <View style={styles.crystalBadge}>
             <Text style={styles.badgeTextLight}>+{CRYSTAL_EXTRACTION_YIELD[hero.rarity]} Cristais</Text>
           </View>
         )}
+        getDisabledLabel={getDisabledLabel}
         onPress={setSelected}
       />
 
