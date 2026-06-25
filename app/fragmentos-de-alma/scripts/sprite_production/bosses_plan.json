@@ -1,6 +1,6 @@
 {
   "concurrency": 8,
-  "tick": 3,
+  "tick": 4,
   "bosses": [
     {
       "key": "axis_velum",
@@ -136,7 +136,7 @@
           "description": "final phase: fully corrupted — bark turns black and twisted, crown of dead thorns drips dark sap, vines are writhing tendrils, keep same character",
           "source": "feb6ebdb-cb9d-4e9c-96fc-95f779eaa77f",
           "job_id": "9530f175-4098-463f-8244-b61d2710a407",
-          "status": "queued",
+          "status": "done",
           "fired_tick": 3,
           "attempts": 1
         }
@@ -171,7 +171,7 @@
           "description": "final phase: fully transformed into a being of black fire barely contained in humanoid shape, the obsidian armor fragments orbit around the fire form, keep same character",
           "source": "9bea9311-e82f-49d6-8d7d-54e7e2d713d1",
           "job_id": "ca7e6a5f-988d-424f-8b2a-41dcb6c2c73a",
-          "status": "queued",
+          "status": "done",
           "fired_tick": 3,
           "attempts": 1
         }
@@ -232,18 +232,18 @@
           "description": "same knight but armor is cracking and crimson energy bleeds through the cracks, sword now pulsing with heartbeat rhythm, veins on armor more prominent, keep same character and proportions",
           "source": "8862afe5-05f1-47d1-ad00-70a8c0c712cc",
           "job_id": "09347295-8fc7-45c4-8f8a-c413ee9b4b2a",
-          "status": "queued",
+          "status": "done",
           "fired_tick": 3,
           "attempts": 1
         },
         {
           "phase": 3,
           "description": "final phase: armor is shattered and the knight is revealed as a being of pure crimson energy, the sword has become a wave of blood energy, horns intact but rest is raw power, keep same character",
-          "source": null,
-          "job_id": null,
-          "status": "waiting_source",
-          "fired_tick": null,
-          "attempts": 0
+          "source": "09347295-8fc7-45c4-8f8a-c413ee9b4b2a",
+          "job_id": "14be223e-9cd8-47d6-b486-5be874b10cf6",
+          "status": "queued",
+          "fired_tick": 4,
+          "attempts": 1
         }
       ]
     }
