@@ -1,6 +1,6 @@
 {
   "concurrency": 8,
-  "tick": 1,
+  "tick": 2,
   "states": [
     {
       "folder": "guardiao",
@@ -87,7 +87,7 @@
       "build": "corrompido",
       "source": "25728967-c03a-4bc8-b42c-cff77408f862",
       "edit": "corrupted version: body is cracked and leaking dark void energy, eyes glow with corrupt purple light, armor is shattered and covered in dark crystal growths, keep same silhouette and proportions",
-      "status": "queued",
+      "status": "done",
       "job_id": "e4656fa2-6705-4d06-b074-f3329a2138d9",
       "fired_tick": 1,
       "attempts": 1
@@ -97,7 +97,7 @@
       "build": "elite",
       "source": "25728967-c03a-4bc8-b42c-cff77408f862",
       "edit": "powerful elite corrupted version: body is heavily fractured with large dark crystal spikes erupting from the armor, surrounded by a menacing dark aura, glowing void runes on the body, keep same silhouette and proportions but appear more threatening",
-      "status": "queued",
+      "status": "done",
       "job_id": "28885696-f3eb-42f6-ad3f-35df4bbad00f",
       "fired_tick": 1,
       "attempts": 1

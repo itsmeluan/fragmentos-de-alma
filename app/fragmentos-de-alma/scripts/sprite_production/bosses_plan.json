@@ -1,6 +1,6 @@
 {
   "concurrency": 8,
-  "tick": 0,
+  "tick": 1,
   "bosses": [
     {
       "key": "axis_velum",
@@ -13,18 +13,18 @@
           "description": "tall sorcerer in flowing dark robes covered in geometric rune patterns, wearing a mask that splits reality around it, staff topped with a crystal sphere, 64px pixel art, black outline, side view, high detail",
           "source": null,
           "job_id": "ecc3dd19-4366-49af-a675-d5d3e6acb7b3",
-          "status": "queued",
+          "status": "done",
           "fired_tick": 0,
           "attempts": 1
         },
         {
           "phase": 2,
           "description": "same sorcerer but robe is torn and glowing cracks appear on the mask, the crystal sphere floats and pulses with unstable energy, keep same character and proportions",
-          "source": null,
-          "job_id": null,
-          "status": "waiting_source",
-          "fired_tick": null,
-          "attempts": 0
+          "source": "ecc3dd19-4366-49af-a675-d5d3e6acb7b3",
+          "job_id": "83d6a2cf-c025-426d-be1f-8e390ad7820c",
+          "status": "queued",
+          "fired_tick": 1,
+          "attempts": 1
         },
         {
           "phase": 3,
@@ -48,18 +48,18 @@
           "description": "massive stone golem knight with living crystal growths on the armor, glowing amber eyes, great hammer made of raw stone, 64px pixel art, black outline, side view, high detail",
           "source": null,
           "job_id": "d20ed451-f280-4f53-99d5-65588fcb17c2",
-          "status": "queued",
+          "status": "done",
           "fired_tick": 0,
           "attempts": 1
         },
         {
           "phase": 2,
           "description": "same stone golem but armor cracked revealing molten core beneath, crystal growths larger and glowing brighter, hammer now pulses with earth energy, keep same character and proportions",
-          "source": null,
-          "job_id": null,
-          "status": "waiting_source",
-          "fired_tick": null,
-          "attempts": 0
+          "source": "d20ed451-f280-4f53-99d5-65588fcb17c2",
+          "job_id": "ae3d0908-0b5e-4b86-909e-fc9686c012c7",
+          "status": "queued",
+          "fired_tick": 1,
+          "attempts": 1
         },
         {
           "phase": 3,
@@ -83,18 +83,18 @@
           "description": "ethereal wraith-like figure in silver robes that flow like memories, face partially obscured by a silver veil, holding a mirror that shows different timelines, 64px pixel art, black outline, side view, high detail",
           "source": null,
           "job_id": "ae2da0fb-358a-4533-a6c3-a725d4ba5957",
-          "status": "queued",
+          "status": "done",
           "fired_tick": 0,
           "attempts": 1
         },
         {
           "phase": 2,
           "description": "same figure but the veil is torn showing a distorted face of echoed memories, the mirror now shows a cracked reflection, silver robes now have ghostly faces embedded, keep same character and proportions",
-          "source": null,
-          "job_id": null,
-          "status": "waiting_source",
-          "fired_tick": null,
-          "attempts": 0
+          "source": "ae2da0fb-358a-4533-a6c3-a725d4ba5957",
+          "job_id": "c025d541-6205-4497-88b2-efbe9659ffc4",
+          "status": "queued",
+          "fired_tick": 1,
+          "attempts": 1
         },
         {
           "phase": 3,
@@ -117,10 +117,10 @@
           "phase": 1,
           "description": "ancient druid with bark-like skin and flowering vines growing from the body, crown of thorns and blooming flowers, staff made of a living twisted tree branch, 64px pixel art, black outline, side view, high detail",
           "source": null,
-          "job_id": null,
-          "status": "pending",
-          "fired_tick": null,
-          "attempts": 0
+          "job_id": "b7e98771-b32c-4330-bafb-356b2f7ab0d6",
+          "status": "queued",
+          "fired_tick": 1,
+          "attempts": 1
         },
         {
           "phase": 2,
@@ -152,10 +152,10 @@
           "phase": 1,
           "description": "fire warrior in charred obsidian armor with black flames emanating from the body, dual curved blades that are permanently on fire with dark flames, 64px pixel art, black outline, side view, high detail",
           "source": null,
-          "job_id": null,
-          "status": "pending",
-          "fired_tick": null,
-          "attempts": 0
+          "job_id": "269690c9-8ee5-40eb-95f9-a109fee931ef",
+          "status": "queued",
+          "fired_tick": 1,
+          "attempts": 1
         },
         {
           "phase": 2,
@@ -187,10 +187,10 @@
           "phase": 1,
           "description": "mysterious figure cloaked in shadow that blends into the background, only silver eyes visible beneath the hood, dual shadow daggers, 64px pixel art, black outline, side view, high detail",
           "source": null,
-          "job_id": null,
-          "status": "pending",
-          "fired_tick": null,
-          "attempts": 0
+          "job_id": "1158f9e8-0301-468b-9f68-7c9255578972",
+          "status": "queued",
+          "fired_tick": 1,
+          "attempts": 1
         },
         {
           "phase": 2,
