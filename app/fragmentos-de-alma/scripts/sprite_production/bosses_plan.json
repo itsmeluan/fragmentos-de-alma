@@ -1,6 +1,6 @@
 {
   "concurrency": 8,
-  "tick": 4,
+  "tick": 5,
   "bosses": [
     {
       "key": "axis_velum",
@@ -241,7 +241,7 @@
           "description": "final phase: armor is shattered and the knight is revealed as a being of pure crimson energy, the sword has become a wave of blood energy, horns intact but rest is raw power, keep same character",
           "source": "09347295-8fc7-45c4-8f8a-c413ee9b4b2a",
           "job_id": "14be223e-9cd8-47d6-b486-5be874b10cf6",
-          "status": "queued",
+          "status": "done",
           "fired_tick": 4,
           "attempts": 1
         }
