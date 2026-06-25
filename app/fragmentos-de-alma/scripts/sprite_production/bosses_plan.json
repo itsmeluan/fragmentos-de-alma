@@ -1,6 +1,6 @@
 {
   "concurrency": 8,
-  "tick": 5,
+  "tick": 9,
   "bosses": [
     {
       "key": "axis_velum",
@@ -205,10 +205,10 @@
           "phase": 3,
           "description": "final phase: the cloak is gone and the figure is pure void given humanoid form, shadow daggers have become extensions of the void body, keep same character",
           "source": "9b6efd5b-def3-436d-906e-c941a1e26d0c",
-          "job_id": "c06afb58-f3fc-4174-a211-df8f79f3528f",
-          "status": "queued",
-          "fired_tick": 3,
-          "attempts": 1
+          "job_id": "d84a31e8-312b-4cd6-a35f-4dadf011d5e2",
+          "status": "done",
+          "fired_tick": 8,
+          "attempts": 2
         }
       ]
     },
