@@ -18,6 +18,7 @@ import { Modal } from '@/components/ui/Modal'
 import { theme } from '@/lib/theme'
 import { useGameStore } from '@/store/gameStore'
 import type { FusionChildInput, FusionResult, Player } from '@/store/gameStore'
+const RANDOM_INVOKE_COST = 500
 import type { Hero, Genome, Rarity } from '@/systems/genes/types'
 import type { HeroSkills, Skill } from '@/systems/skills/types'
 import type { Eco, EcoCreateResult, ExtractCrystalsResult } from '@/systems/genes/eco'
@@ -31,6 +32,8 @@ import {
   getTierUpChance,
   previewAbsorption,
   RARITY_ORDER,
+  TRANSMUTATION_FRAGMENT_COST,
+  TRANSMUTATION_CRYSTAL_COST,
 } from '@/systems/genes/eco'
 import { fuseGenomes } from '@/systems/genes/fusion'
 import { calculateRarity } from '@/systems/genes/rarity'
@@ -154,6 +157,8 @@ export default function TransmutationScreen() {
     commitCreateEco,
     commitExtractCrystals,
     commitTransmutation,
+    commitEvokeEco,
+    commitRandomInvoke,
   } = useGameStore()
   const [activeTab, setActiveTab] = useState<ActiveTab>('eco')
 
@@ -208,6 +213,8 @@ export default function TransmutationScreen() {
           player={player}
           isLoading={isLoading}
           onCommit={commitTransmutation}
+          onEvoke={commitEvokeEco}
+          onRandomInvoke={commitRandomInvoke}
         />
       )}
     </SafeAreaView>
@@ -436,6 +443,8 @@ function TransmuteTab({
   player,
   isLoading,
   onCommit,
+  onEvoke,
+  onRandomInvoke,
 }: {
   ecos: Eco[]
   player: Player | null
@@ -446,6 +455,8 @@ function TransmuteTab({
     catalystEcoIds: string[],
     child: FusionChildInput,
   ) => Promise<FusionResult>
+  onEvoke: (ecoId: string, child: FusionChildInput) => Promise<FusionResult>
+  onRandomInvoke: () => Promise<FusionResult>
 }) {
   const [primaryEcoA, setPrimaryEcoA] = useState<Eco | null>(null)
   const [primaryEcoB, setPrimaryEcoB] = useState<Eco | null>(null)
@@ -455,10 +466,22 @@ function TransmuteTab({
   const [resultHero, setResultHero] = useState<Hero | null>(null)
 
   const canTransmute = primaryEcoA !== null && primaryEcoB !== null && primaryEcoA.id !== primaryEcoB.id
+  const onlyEcoA = primaryEcoA !== null && primaryEcoB === null
+
   const cost = primaryEcoA && primaryEcoB ? calcEcoTransmutationCost(primaryEcoA, primaryEcoB) : null
   const canAffordFragments = (player?.soulFragments ?? 0) >= (cost?.fragments ?? 0)
   const canAffordCrystals = (player?.essenceCrystals ?? 0) >= (cost?.crystals ?? 0)
   const canAfford = canAffordFragments && canAffordCrystals
+
+  const evokeCost = primaryEcoA
+    ? { fragments: TRANSMUTATION_FRAGMENT_COST[primaryEcoA.rarity], crystals: TRANSMUTATION_CRYSTAL_COST[primaryEcoA.rarity] }
+    : null
+  const canAffordEvoke = evokeCost
+    ? (player?.soulFragments ?? 0) >= evokeCost.fragments && (player?.essenceCrystals ?? 0) >= evokeCost.crystals
+    : false
+
+  const canAffordRandom = (player?.soulFragments ?? 0) >= RANDOM_INVOKE_COST
+
   const tierUpChance = cost
     ? getTierUpChance(catalysts.length, cost.rarity, player?.legacyScore ?? 0)
     : 0
@@ -499,16 +522,47 @@ function TransmuteTab({
     })
 
     setTransmuting(false)
-
-    if (!result.ok) {
-      Alert.alert('Erro na Transmutação', result.error)
-      return
-    }
+    if (!result.ok) { Alert.alert('Erro na Transmutação', result.error); return }
 
     setResultHero(result.hero)
     setPrimaryEcoA(null)
     setPrimaryEcoB(null)
     setCatalysts([])
+  }
+
+  const handleEvoke = async () => {
+    if (!primaryEcoA || !canAffordEvoke) return
+
+    setTransmuting(true)
+    const seed = `evoke-eco:${primaryEcoA.id}:${Date.now()}`
+    const genome = clampGenome(ecoToGenome(primaryEcoA))
+    const rarity = primaryEcoA.rarity
+    const visualParams = generateVisualParams(genome, seed)
+    const skills = generateSkills(genome, rarity, `${seed}:skills`)
+
+    const result = await onEvoke(primaryEcoA.id, {
+      name: generateName(genome, seed),
+      fusionSeed: seed,
+      genome,
+      rarity,
+      visualParams,
+      skills,
+      generation: 1,
+    })
+
+    setTransmuting(false)
+    if (!result.ok) { Alert.alert('Erro na Evocação', result.error); return }
+
+    setResultHero(result.hero)
+    setPrimaryEcoA(null)
+  }
+
+  const handleRandomInvoke = async () => {
+    setTransmuting(true)
+    const result = await onRandomInvoke()
+    setTransmuting(false)
+    if (!result.ok) { Alert.alert('Erro na Invocação', result.error); return }
+    setResultHero(result.hero)
   }
 
   return (
@@ -521,70 +575,133 @@ function TransmuteTab({
       </View>
 
       <View style={styles.parentRow}>
-        <EcoSlot label="Eco A" eco={primaryEcoA} onPress={() => setSelecting('A')} />
+        <EcoSlot
+          label="Eco A"
+          eco={primaryEcoA}
+          onPress={() => setSelecting('A')}
+          onClear={primaryEcoA ? () => { setPrimaryEcoA(null); setCatalysts([]) } : undefined}
+        />
         <AlchemicalCircle active={canTransmute} size={86} />
-        <EcoSlot label="Eco B" eco={primaryEcoB} onPress={() => setSelecting('B')} />
+        <EcoSlot
+          label="Eco B"
+          eco={primaryEcoB}
+          onPress={() => setSelecting('B')}
+          onClear={primaryEcoB ? () => setPrimaryEcoB(null) : undefined}
+        />
       </View>
 
-      <Text style={styles.sectionLabel}>Catalisadores</Text>
-      <View style={styles.catalystRow}>
-        {[0, 1, 2].map((index) => {
-          const eco = catalysts[index]
-          return (
-            <Pressable
-              key={index}
-              onPress={() => {
-                if (eco) {
-                  setCatalysts(catalysts.filter((_, itemIndex) => itemIndex !== index))
-                  return
-                }
-                if (catalysts.length < 3) setSelecting('CAT')
-              }}
-              style={[styles.catalystSlot, eco && styles.catalystSlotFilled]}
-            >
-              {eco ? (
-                <>
-                  <Text style={styles.catalystName} numberOfLines={1}>{eco.signature_affinity}</Text>
-                  <Text style={styles.catalystMeta} numberOfLines={1}>{RARITY_LABELS[eco.rarity]}</Text>
-                </>
-              ) : (
-                <Text style={styles.slotEmpty}>+ Eco</Text>
-              )}
-            </Pressable>
-          )
-        })}
+      {/* Evocação direta — aparece quando só Eco A está selecionado */}
+      {onlyEcoA && evokeCost && (
+        <View style={styles.evokeBox}>
+          <Text style={styles.evokeTitle}>Evocar direto</Text>
+          <Text style={styles.evokeDesc}>
+            Materializa um herói da assinatura deste Eco. Raridade garantida: {RARITY_LABELS[primaryEcoA.rarity]}.
+          </Text>
+          <Text style={styles.evokeCost}>
+            Custo: {evokeCost.fragments} ◆ Fragmentos + {evokeCost.crystals} ◇ Cristais
+          </Text>
+          {!canAffordEvoke && (
+            <Text style={styles.warningText}>Recursos insuficientes para evocar.</Text>
+          )}
+          <Button
+            label={`Evocar (${evokeCost.fragments} ◆ + ${evokeCost.crystals} ◇)`}
+            onPress={handleEvoke}
+            disabled={!canAffordEvoke || transmuting}
+            loading={transmuting}
+            style={styles.evokeButton}
+          />
+          <Text style={styles.evokeHint}>ou adicione Eco B para Transmutação completa →</Text>
+        </View>
+      )}
+
+      {/* Catalisadores — só mostra quando ambos os Ecos estão selecionados */}
+      {canTransmute && (
+        <>
+          <Text style={styles.sectionLabel}>Catalisadores</Text>
+          <View style={styles.catalystRow}>
+            {[0, 1, 2].map((index) => {
+              const eco = catalysts[index]
+              return (
+                <Pressable
+                  key={index}
+                  onPress={() => {
+                    if (eco) { setCatalysts(catalysts.filter((_, i) => i !== index)); return }
+                    if (catalysts.length < 3) setSelecting('CAT')
+                  }}
+                  style={[styles.catalystSlot, eco && styles.catalystSlotFilled]}
+                >
+                  {eco ? (
+                    <>
+                      <Text style={styles.catalystName} numberOfLines={1}>{eco.signature_affinity}</Text>
+                      <Text style={styles.catalystMeta} numberOfLines={1}>{RARITY_LABELS[eco.rarity]}</Text>
+                    </>
+                  ) : (
+                    <Text style={styles.slotEmpty}>+ Eco</Text>
+                  )}
+                </Pressable>
+              )
+            })}
+          </View>
+
+          <View style={styles.previewBox}>
+            <Text style={styles.previewTitle}>Preview</Text>
+            <Text style={styles.previewText}>
+              Custo: {cost ? `${cost.fragments} ◆ + ${cost.crystals} ◇` : 'selecione dois Ecos principais'}
+            </Text>
+            <Text style={styles.previewText}>
+              Catalisadores: {catalysts.length}/3
+              {tierUpChance > 0 ? ` · chance +1 tier: ${Math.round(tierUpChance * 100)}%` : ''}
+            </Text>
+            {cost && (
+              <Text style={styles.previewText}>Raridade mínima do catalisador: {RARITY_LABELS[cost.rarity]}</Text>
+            )}
+            {cost && !canAffordFragments && (
+              <Text style={styles.warningText}>
+                Fragmentos insuficientes ({player?.soulFragments ?? 0}/{cost.fragments}).
+              </Text>
+            )}
+            {cost && !canAffordCrystals && (
+              <Text style={styles.warningText}>
+                Cristais insuficientes ({player?.essenceCrystals ?? 0}/{cost.crystals}).
+              </Text>
+            )}
+          </View>
+
+          <Button
+            label="Transmutar"
+            onPress={handleTransmute}
+            disabled={!canAfford || transmuting}
+            loading={transmuting}
+          />
+        </>
+      )}
+
+      {/* Divisor */}
+      <View style={styles.divider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerLabel}>ou</Text>
+        <View style={styles.dividerLine} />
       </View>
 
-      <View style={styles.previewBox}>
-        <Text style={styles.previewTitle}>Preview</Text>
-        <Text style={styles.previewText}>
-          Custo: {cost ? `${cost.fragments} Fragmentos + ${cost.crystals} Cristais` : 'selecione dois Ecos principais'}
+      {/* Invocação aleatória */}
+      <View style={styles.randomBox}>
+        <Text style={styles.randomTitle}>Invocar Aleatório</Text>
+        <Text style={styles.randomDesc}>
+          Gasta {RANDOM_INVOKE_COST} Fragmentos para invocar um herói aleatório das essências de Solum. Raridade não garantida.
         </Text>
-        <Text style={styles.previewText}>
-          Catalisadores: {catalysts.length}/3
-          {tierUpChance > 0 ? ` · chance +1 tier: ${Math.round(tierUpChance * 100)}%` : ''}
-        </Text>
-        {cost && (
-          <Text style={styles.previewText}>Raridade mínima do catalisador: {RARITY_LABELS[cost.rarity]}</Text>
-        )}
-        {cost && !canAffordFragments && (
+        {!canAffordRandom && (
           <Text style={styles.warningText}>
-            Fragmentos insuficientes ({player?.soulFragments ?? 0}/{cost.fragments}).
+            Fragmentos insuficientes ({player?.soulFragments ?? 0}/{RANDOM_INVOKE_COST}).
           </Text>
         )}
-        {cost && !canAffordCrystals && (
-          <Text style={styles.warningText}>
-            Cristais insuficientes ({player?.essenceCrystals ?? 0}/{cost.crystals}).
-          </Text>
-        )}
+        <Button
+          label={`Invocar (${RANDOM_INVOKE_COST} ◆)`}
+          variant="secondary"
+          onPress={handleRandomInvoke}
+          disabled={!canAffordRandom || transmuting}
+          loading={transmuting}
+        />
       </View>
-
-      <Button
-        label="Transmutar"
-        onPress={handleTransmute}
-        disabled={!canTransmute || !canAfford || transmuting}
-        loading={transmuting}
-      />
 
       {(selecting === 'A' || selecting === 'B') && (
         <EcoSelectionModal
@@ -601,7 +718,7 @@ function TransmuteTab({
       )}
 
       {selecting === 'CAT' && (
-        <Modal visible title="Selecionar Eco" onClose={() => setSelecting(null)}>
+        <Modal visible title="Selecionar Eco Catalisador" onClose={() => setSelecting(null)}>
           <View style={styles.modalBody}>
             {availableCatalysts.length === 0 ? (
               <Text style={styles.emptyText}>Nenhum Eco compatível disponível.</Text>
@@ -609,10 +726,7 @@ function TransmuteTab({
               availableCatalysts.map((eco) => (
                 <Pressable
                   key={eco.id}
-                  onPress={() => {
-                    setCatalysts([...catalysts, eco].slice(0, 3))
-                    setSelecting(null)
-                  }}
+                  onPress={() => { setCatalysts([...catalysts, eco].slice(0, 3)); setSelecting(null) }}
                   style={styles.ecoRow}
                 >
                   <Text style={styles.ecoName}>
@@ -629,7 +743,7 @@ function TransmuteTab({
         </Modal>
       )}
 
-      <Modal visible={resultHero !== null} title="Transmutação Concluída" onClose={() => setResultHero(null)} fill>
+      <Modal visible={resultHero !== null} title="Herói Invocado" onClose={() => setResultHero(null)} fill>
         {resultHero && (
           <View style={styles.resultBody}>
             <HeroDetail hero={resultHero} />
@@ -700,18 +814,25 @@ function EcoSlot({
   label,
   eco,
   onPress,
+  onClear,
 }: {
   label: string
   eco: Eco | null
   onPress: () => void
+  onClear?: () => void
 }) {
   return (
-    <Pressable onPress={onPress} style={[styles.parentSlot, eco && styles.parentSlotFilled]}>
+    <Pressable onPress={eco ? undefined : onPress} style={[styles.parentSlot, eco && styles.parentSlotFilled]}>
       {eco ? (
         <>
           <Text style={styles.slotName} numberOfLines={2}>{eco.signature_affinity}</Text>
           <Text style={styles.slotMeta}>{RARITY_LABELS[eco.rarity]}</Text>
           <Text style={styles.slotMini} numberOfLines={1}>{eco.signature_core}</Text>
+          {onClear && (
+            <Pressable onPress={onClear} style={styles.slotClear} hitSlop={8}>
+              <Text style={styles.slotClearText}>×</Text>
+            </Pressable>
+          )}
         </>
       ) : (
         <Text style={styles.slotEmpty}>+ {label}</Text>
@@ -1057,4 +1178,93 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   resultBody: { maxHeight: 620, gap: theme.spacing.md },
+  slotClear: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  slotClearText: {
+    fontFamily: theme.typography.stat.fontFamily,
+    fontSize: 16,
+    color: theme.colors.text.secondary,
+    lineHeight: 20,
+  },
+  evokeBox: {
+    marginHorizontal: theme.spacing.lg,
+    padding: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.gold.main,
+    backgroundColor: theme.colors.gold.dark + '18',
+    gap: theme.spacing.sm,
+  },
+  evokeTitle: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 11,
+    color: theme.colors.gold.main,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  evokeDesc: {
+    fontFamily: theme.typography.body.fontFamily,
+    fontSize: 12,
+    lineHeight: 19,
+    color: theme.colors.text.primary,
+  },
+  evokeCost: {
+    fontFamily: theme.typography.stat.fontFamily,
+    fontSize: 14,
+    color: theme.colors.gold.light,
+  },
+  evokeButton: { marginTop: theme.spacing.xs },
+  evokeHint: {
+    fontFamily: theme.typography.body.fontFamily,
+    fontSize: 11,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: theme.spacing.lg,
+    gap: theme.spacing.sm,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 0.5,
+    backgroundColor: theme.colors.border.subtle,
+  },
+  dividerLabel: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 10,
+    color: theme.colors.text.secondary,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  randomBox: {
+    marginHorizontal: theme.spacing.lg,
+    padding: theme.spacing.md,
+    borderWidth: 0.5,
+    borderColor: theme.colors.border.subtle,
+    backgroundColor: theme.colors.background.secondary,
+    gap: theme.spacing.sm,
+  },
+  randomTitle: {
+    fontFamily: theme.typography.label.fontFamily,
+    fontSize: 11,
+    color: theme.colors.text.secondary,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  randomDesc: {
+    fontFamily: theme.typography.body.fontFamily,
+    fontSize: 12,
+    lineHeight: 19,
+    color: theme.colors.text.secondary,
+  },
 })

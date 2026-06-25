@@ -26,6 +26,7 @@ import {
 // 6 = time completo de dungeon (3 ativos + 3 no banco, doc 06), destravando
 // tanto a Fusão quanto a entrada na primeira dungeon sem grind.
 const STARTER_FRAGMENT_COUNT = 6
+const RANDOM_INVOKE_COST = 500
 
 // Custo de fusão em Fragmentos por tier do pai de maior raridade (doc 05).
 // A fusão básica NÃO consome Cristais — eles são para intervenções (injeção de
@@ -147,6 +148,8 @@ interface GameStore {
     catalystEcoIds: string[],
     child: FusionChildInput
   ) => Promise<FusionResult>
+  commitEvokeEco: (ecoId: string, child: FusionChildInput) => Promise<FusionResult>
+  commitRandomInvoke: () => Promise<FusionResult>
   setRoster: (teamIds: string[], benchIds: string[]) => Promise<void>
   isInRoster: (heroId: string) => boolean
   canRetireHero: (heroId: string) => boolean
@@ -683,6 +686,131 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return { ok: true, hero: newHero }
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'Erro na transmutação.' }
+    }
+  },
+
+  commitEvokeEco: async (ecoId, child) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return { ok: false, error: 'Não autenticado.' }
+
+      const { ecos, player } = get()
+      if (!player) return { ok: false, error: 'Jogador não carregado.' }
+
+      const eco = ecos.find((e) => e.id === ecoId)
+      if (!eco) return { ok: false, error: 'Eco não encontrado.' }
+
+      // Custo = mesmo que transmutação para a raridade do Eco
+      const cost = calcEcoTransmutationCost(eco, eco)
+      if (player.soulFragments < cost.fragments) {
+        return { ok: false, error: `Fragmentos insuficientes (precisa de ${cost.fragments}).` }
+      }
+      if (player.essenceCrystals < cost.crystals) {
+        return { ok: false, error: `Cristais insuficientes (precisa de ${cost.crystals}).` }
+      }
+
+      const { data: childRow, error: childErr } = await supabase
+        .from('heroes')
+        .insert({
+          player_id: user.id,
+          name: child.name,
+          fusion_seed: child.fusionSeed,
+          genome: child.genome,
+          rarity: child.rarity,
+          visual_params: child.visualParams,
+          skills: child.skills,
+          level: 1,
+          xp: 0,
+          bond: 0,
+          ultimate_charge: 0,
+          generation: child.generation,
+          is_retired: false,
+        })
+        .select()
+        .single()
+      if (childErr) throw childErr
+
+      const newFragments = player.soulFragments - cost.fragments
+      const newCrystals = player.essenceCrystals - cost.crystals
+      const newFusions = player.totalFusions + 1
+
+      const { error: playerErr } = await supabase
+        .from('players')
+        .update({ soul_fragments: newFragments, essence_crystals: newCrystals, total_fusions: newFusions })
+        .eq('id', user.id)
+      if (playerErr) throw playerErr
+
+      const newHero = rowToHero(childRow as Record<string, unknown>)
+      set((state) => ({
+        heroes: [newHero, ...state.heroes],
+        player: state.player
+          ? { ...state.player, soulFragments: newFragments, essenceCrystals: newCrystals, totalFusions: newFusions }
+          : null,
+      }))
+
+      return { ok: true, hero: newHero }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Erro na evocação.' }
+    }
+  },
+
+  commitRandomInvoke: async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return { ok: false, error: 'Não autenticado.' }
+
+      const { player } = get()
+      if (!player) return { ok: false, error: 'Jogador não carregado.' }
+
+      if (player.soulFragments < RANDOM_INVOKE_COST) {
+        return { ok: false, error: `Fragmentos insuficientes (precisa de ${RANDOM_INVOKE_COST}).` }
+      }
+
+      const seed = `random-invoke:${user.id}:${Date.now()}`
+      const genome = generateFragmentGenome()
+      const rarity = calculateRarity(genome)
+
+      const { data: heroRow, error: heroErr } = await supabase
+        .from('heroes')
+        .insert({
+          player_id: user.id,
+          name: generateName(genome, seed),
+          fusion_seed: seed,
+          genome,
+          rarity,
+          visual_params: generateVisualParams(genome, seed),
+          skills: generateSkills(genome, rarity, seed),
+          level: 1,
+          xp: 0,
+          bond: 0,
+          ultimate_charge: 0,
+          generation: 1,
+          is_retired: false,
+        })
+        .select()
+        .single()
+      if (heroErr) throw heroErr
+
+      const newFragments = player.soulFragments - RANDOM_INVOKE_COST
+      const newFusions = player.totalFusions + 1
+
+      const { error: playerErr } = await supabase
+        .from('players')
+        .update({ soul_fragments: newFragments, total_fusions: newFusions })
+        .eq('id', user.id)
+      if (playerErr) throw playerErr
+
+      const newHero = rowToHero(heroRow as Record<string, unknown>)
+      set((state) => ({
+        heroes: [newHero, ...state.heroes],
+        player: state.player
+          ? { ...state.player, soulFragments: newFragments, totalFusions: newFusions }
+          : null,
+      }))
+
+      return { ok: true, hero: newHero }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Erro na invocação aleatória.' }
     }
   },
 
