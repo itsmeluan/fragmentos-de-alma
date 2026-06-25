@@ -45,7 +45,7 @@ export function SplashAnimation({
 
   // Player do vídeo — reprodução automática em loop suave
   const player = useVideoPlayer(
-    require('../../../assets/video/splash_loop.mp4'),
+    require('../../../assets/video/sigil_loop_segment_4s.mp4'),
     (p) => {
       p.loop = true
       p.muted = true
