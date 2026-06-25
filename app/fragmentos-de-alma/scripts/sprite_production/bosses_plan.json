@@ -12,10 +12,10 @@
           "phase": 1,
           "description": "tall sorcerer in flowing dark robes covered in geometric rune patterns, wearing a mask that splits reality around it, staff topped with a crystal sphere, 64px pixel art, black outline, side view, high detail",
           "source": null,
-          "job_id": null,
-          "status": "pending",
-          "fired_tick": null,
-          "attempts": 0
+          "job_id": "ecc3dd19-4366-49af-a675-d5d3e6acb7b3",
+          "status": "queued",
+          "fired_tick": 0,
+          "attempts": 1
         },
         {
           "phase": 2,
@@ -47,10 +47,10 @@
           "phase": 1,
           "description": "massive stone golem knight with living crystal growths on the armor, glowing amber eyes, great hammer made of raw stone, 64px pixel art, black outline, side view, high detail",
           "source": null,
-          "job_id": null,
-          "status": "pending",
-          "fired_tick": null,
-          "attempts": 0
+          "job_id": "d20ed451-f280-4f53-99d5-65588fcb17c2",
+          "status": "queued",
+          "fired_tick": 0,
+          "attempts": 1
         },
         {
           "phase": 2,
@@ -82,10 +82,10 @@
           "phase": 1,
           "description": "ethereal wraith-like figure in silver robes that flow like memories, face partially obscured by a silver veil, holding a mirror that shows different timelines, 64px pixel art, black outline, side view, high detail",
           "source": null,
-          "job_id": null,
-          "status": "pending",
-          "fired_tick": null,
-          "attempts": 0
+          "job_id": "ae2da0fb-358a-4533-a6c3-a725d4ba5957",
+          "status": "queued",
+          "fired_tick": 0,
+          "attempts": 1
         },
         {
           "phase": 2,
