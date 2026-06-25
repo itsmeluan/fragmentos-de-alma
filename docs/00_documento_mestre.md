@@ -39,6 +39,7 @@ Este projeto tem **13 documentos de design** e **1 documento técnico** (este). 
 | 11 | `11_mapa_de_solum.md` | Mapa vivo, navegação, estados, territórios, implementação | Tela principal / Hub |
 | 12 | `12_endgame.md` | Torres de Ressonância, PvP, Fragmentos Ancestrais, Ciclos | Sistemas de endgame |
 | 13 | `13_transmutacao.md` | Círculo de Transmutação: Criar Eco, Extrair Cristais, Transmutar Heróis | Antes de implementar transmutação |
+| 14 | `14_assets_pixellab.md` | Mapa de produção de arte: PixelLab (raster) vs Skia (procedural), contagem e pipeline | Antes de gerar/integrar qualquer arte |
 
 ### Ordem de Leitura Recomendada
 
