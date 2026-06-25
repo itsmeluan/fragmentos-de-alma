@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Button } from '@/components/ui/Button'
 import { HeroVisual } from '@/components/hero/HeroVisual'
 import { theme } from '@/lib/theme'
@@ -75,33 +75,35 @@ export function HeroReveal({ hero, onClose }: HeroRevealProps) {
   ]
 
   return (
-    <Animated.View style={[styles.root, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        bounces
-      >
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      bounces
+    >
+      <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
         {/* Visual com borda de raridade */}
-        <Pressable onPress={() => {}} style={[styles.visualWrap, { borderColor: rarityColor, shadowColor: rarityColor }]}>
-          <HeroVisual hero={hero} size="detail" style={styles.visual} />
-          <View style={[styles.rarityGlow, { backgroundColor: rarityColor + '18' }]} />
-        </Pressable>
+        <View style={styles.visualSection}>
+          <View style={[styles.visualWrap, { borderColor: rarityColor, shadowColor: rarityColor }]}>
+            <HeroVisual hero={hero} size="detail" style={styles.visual} />
+            <View style={[styles.rarityGlow, { backgroundColor: rarityColor + '18' }]} />
+          </View>
 
-        {/* Raridade */}
-        <View style={[styles.rarityBadge, { borderColor: rarityColor, backgroundColor: rarityColor + '22' }]}>
-          <Text style={[styles.rarityText, { color: rarityColor }]}>
-            {RARITY_LABELS[hero.rarity].toUpperCase()}
+          {/* Raridade */}
+          <View style={[styles.rarityBadge, { borderColor: rarityColor, backgroundColor: rarityColor + '22' }]}>
+            <Text style={[styles.rarityText, { color: rarityColor }]}>
+              {RARITY_LABELS[hero.rarity].toUpperCase()}
+            </Text>
+          </View>
+
+          {/* Nome */}
+          <Text style={styles.name}>{hero.name}</Text>
+
+          {/* Essência */}
+          <Text style={styles.essence}>
+            {hero.genome.essence.origin} · {hero.genome.essence.affinity} · {hero.genome.essence.core}
           </Text>
         </View>
-
-        {/* Nome */}
-        <Text style={styles.name}>{hero.name}</Text>
-
-        {/* Essência */}
-        <Text style={styles.essence}>
-          {hero.genome.essence.origin} · {hero.genome.essence.affinity} · {hero.genome.essence.core}
-        </Text>
 
         {/* Atributos */}
         <View style={styles.section}>
@@ -131,22 +133,23 @@ export function HeroReveal({ hero, onClose }: HeroRevealProps) {
           onPress={onClose}
           style={styles.closeButton}
         />
-      </ScrollView>
-    </Animated.View>
+      </Animated.View>
+    </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
   scroll: {
     flex: 1,
   },
   content: {
-    alignItems: 'center',
     paddingBottom: theme.spacing.xxl,
     gap: theme.spacing.md,
+  },
+  visualSection: {
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
   },
   visualWrap: {
     marginTop: theme.spacing.lg,
