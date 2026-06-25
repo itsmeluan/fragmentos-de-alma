@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { AlchemicalCircle } from '@/components/fusion/AlchemicalCircle'
 import { HeroCard } from '@/components/hero/HeroCard'
-import { HeroDetail } from '@/components/hero/HeroDetail'
+import { HeroReveal } from '@/components/transmutation/HeroReveal'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { theme } from '@/lib/theme'
@@ -743,12 +743,9 @@ function TransmuteTab({
         </Modal>
       )}
 
-      <Modal visible={resultHero !== null} title="Herói Invocado" onClose={() => setResultHero(null)} fill>
+      <Modal visible={resultHero !== null} onClose={() => setResultHero(null)} fill>
         {resultHero && (
-          <View style={styles.resultBody}>
-            <HeroDetail hero={resultHero} />
-            <Button label="Fechar" onPress={() => setResultHero(null)} />
-          </View>
+          <HeroReveal hero={resultHero} onClose={() => setResultHero(null)} />
         )}
       </Modal>
     </ScrollView>
