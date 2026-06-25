@@ -16,7 +16,7 @@ import {
 import { theme } from '@/lib/theme'
 import { makeSeededRng } from '@/utils/random'
 import { resolveHeroSprite } from '@/systems/visual/heroSprite'
-import { AFFINITY_PALETTE } from '@/systems/visual/affinityColors'
+import { getAffinityPalette } from '@/systems/visual/affinityColors'
 import type { Hero, Rarity } from '@/systems/genes/types'
 
 export interface HeroVisualProps {
@@ -51,7 +51,7 @@ export function HeroVisual({ hero, size = 'card', style }: HeroVisualProps) {
   const dim = SIZE_MAP[size]
   const { essence, attributes } = hero.genome
   const rarityColor = theme.colors.rarity[hero.rarity]
-  const aff = AFFINITY_PALETTE[essence.affinity]
+  const aff = getAffinityPalette(essence.affinity)
 
   const resolved = useMemo(
     () => resolveHeroSprite(essence.core, hero.rarity, attributes, 'south'),

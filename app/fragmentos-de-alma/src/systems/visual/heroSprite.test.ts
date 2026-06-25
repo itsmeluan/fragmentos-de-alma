@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals'
 import { pickBuild, resolveHeroSprite } from './heroSprite'
+import { getAffinityPalette } from './affinityColors'
 import type { AttributeGenes } from '@/systems/genes/types'
 
 const baseAttrs: AttributeGenes = {
@@ -50,5 +51,22 @@ describe('resolveHeroSprite', () => {
     const r = resolveHeroSprite('Sentinela', 'comum', baseAttrs, 'south')
     expect(r.folder).toBe('guardiao') // Sentinela → Guardião
     expect(r.source).not.toBeNull()
+  })
+})
+
+describe('getAffinityPalette', () => {
+  it('retorna a paleta de uma afinidade canônica', () => {
+    expect(getAffinityPalette('Fogo').primary).toBe('#C0392B')
+  })
+
+  it('normaliza afinidades legadas/de teste (Gelo→Água, Trovão→Vento)', () => {
+    expect(getAffinityPalette('Gelo')).toEqual(getAffinityPalette('Água'))
+    expect(getAffinityPalette('Trovão')).toEqual(getAffinityPalette('Vento'))
+  })
+
+  it('faz fallback seguro para afinidade desconhecida', () => {
+    const p = getAffinityPalette('Inexistente')
+    expect(p.primary).toBeDefined()
+    expect(p.glow).toBeDefined()
   })
 })
