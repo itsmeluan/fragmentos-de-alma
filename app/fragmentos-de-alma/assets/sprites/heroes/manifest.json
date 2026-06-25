@@ -1,0 +1,44 @@
+{
+  "_comment": "Manifesto de sprites de herói gerados no PixelLab. Ver docs/14_assets_pixellab.md. Direções: south, east, north, west, south-east, north-east, north-west, south-west (8). Builds B usados espelhando east<->west no render.",
+  "view": "side",
+  "directions": ["south", "east", "north", "west", "south-east", "north-east", "north-west", "south-west"],
+  "cores": {
+    "guardiao": {
+      "builds": {
+        "guardiao": { "label": "Guardião", "weight": "leve", "tiers": { "comum": "e474e4f5-c58e-4df6-b4e9-33e602986b16", "lendario": "c5b39be3-4954-4e8e-97d6-1a640d6f1f23" } },
+        "sentinela": { "label": "Sentinela", "weight": "pesado", "tiers": { "comum": "4840473e-fce5-4978-bf61-c83e390b69c2", "lendario": "dc3ff636-ca7e-4b1f-9f1b-0e33f6b0009b" } }
+      },
+      "buildSelector": { "attr": "resistencia", "highBuild": "sentinela", "default": "guardiao" }
+    },
+    "destruidor": {
+      "builds": {
+        "fragmentador": { "label": "Fragmentador", "weight": "pesado", "tiers": { "comum": "073350a1-ebf7-472a-9d86-c40e5c795cea", "lendario": "31f65465-72ba-44f4-b386-d9af87238bb4" } },
+        "reaver": { "label": "Reaver", "weight": "ágil", "tiers": { "comum": "4ec2f53c-82fc-4334-a3c9-a682f00ea984" } }
+      },
+      "buildSelector": { "attr": "agilidade", "highBuild": "reaver", "default": "fragmentador" }
+    },
+    "arauto": {
+      "builds": {
+        "arauto": { "label": "Arauto", "weight": "médio", "tiers": { "comum": "0a009c7e-0acb-4a1e-8546-255de2fdbaed", "lendario": "e9578814-e742-47b8-9dc1-a3124aa93b62" } },
+        "corneiro": { "label": "Corneiro", "weight": "médio", "tiers": { "comum": "ebb178b3-f8e8-42d3-b6ee-2a2d5ddc8fbc" } }
+      },
+      "buildSelector": { "attr": "aura", "highBuild": "corneiro", "default": "arauto" }
+    },
+    "invocador": {
+      "builds": {
+        "invocador": { "label": "Invocador", "weight": "médio", "tiers": { "comum": "4b34b445-3e14-415a-af59-40a1e45e8e66", "lendario": "81a2f184-da88-49c0-8423-d7f5086a8e7d" } },
+        "anciao": { "label": "Ancião", "weight": "robe", "tiers": { "comum": "972401a0-b799-4a3e-876f-157be9d29cd2", "lendario": "33adad5d-9ece-4eda-b741-ac2001e13c44" } }
+      },
+      "buildSelector": { "attr": "ressonancia", "highBuild": "invocador", "default": "anciao" }
+    },
+    "trickster": {
+      "builds": {
+        "vidente": { "label": "Vidente", "weight": "robe", "tiers": { "comum": "25728967-c03a-4bc8-b42c-cff77408f862", "lendario": "e954693a-a433-434f-b372-3c5394071655" } },
+        "cacador": { "label": "Caçador", "weight": "ágil", "tiers": { "comum": "6176572c-cf0d-46c4-bb64-efacf0712bc8", "lendario": "40b110d6-2ffd-497d-aa56-b5c1e0ad1296" } }
+      },
+      "buildSelector": { "attr": "agilidade", "highBuild": "cacador", "default": "vidente" }
+    }
+  },
+  "tiersPendentes": ["incomum", "raro", "epico", "unico"],
+  "buildsSemLendario": ["destruidor/reaver", "arauto/corneiro"]
+}
