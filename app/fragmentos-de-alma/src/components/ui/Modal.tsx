@@ -21,11 +21,15 @@ export function Modal({ visible, title, onClose, children, fill, containerStyle 
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <View
-          style={[styles.container, fill && styles.containerFill, containerStyle]}
-          onStartShouldSetResponder={() => true}
-        >
+      {/*
+       * Backdrop e container são irmãos. O Pressable cobre tudo (absoluteFill)
+       * para fechar ao tocar fora. O container é renderizado depois (z-order maior)
+       * e recebe os toques na área do modal — sem nenhum handler próprio, deixando
+       * ScrollView e outros filhos capturarem gestos livremente.
+       */}
+      <View style={styles.overlay} pointerEvents="box-none">
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={[styles.container, fill && styles.containerFill, containerStyle]}>
           <View style={styles.topAccent} />
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
             <CornerBracket position="tl" />
@@ -40,7 +44,7 @@ export function Modal({ visible, title, onClose, children, fill, containerStyle 
           )}
           {children}
         </View>
-      </Pressable>
+      </View>
     </RNModal>
   )
 }
