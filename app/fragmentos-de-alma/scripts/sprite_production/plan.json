@@ -1,6 +1,6 @@
 {
   "concurrency": 8,
-  "tick": 0,
+  "tick": 1,
   "states": [
     {
       "folder": "guardiao",
@@ -8,7 +8,7 @@
       "tier": "incomum",
       "source": "e474e4f5-c58e-4df6-b4e9-33e602986b16",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "queued",
+      "status": "done",
       "job_id": "58205161-c724-4ac2-8c05-21c58af90865",
       "fired_tick": 0,
       "attempts": 1
@@ -19,7 +19,7 @@
       "tier": "incomum",
       "source": "4840473e-fce5-4978-bf61-c83e390b69c2",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "queued",
+      "status": "done",
       "job_id": "90c05cb0-6808-444b-8f76-4ae16b34130e",
       "fired_tick": 0,
       "attempts": 1
@@ -30,7 +30,7 @@
       "tier": "incomum",
       "source": "073350a1-ebf7-472a-9d86-c40e5c795cea",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "queued",
+      "status": "done",
       "job_id": "ecdd3935-a1e7-4683-9ebf-cc57d5df3cb3",
       "fired_tick": 0,
       "attempts": 1
@@ -41,7 +41,7 @@
       "tier": "incomum",
       "source": "4ec2f53c-82fc-4334-a3c9-a682f00ea984",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "queued",
+      "status": "done",
       "job_id": "38e5ea33-7b41-4058-8d8c-3661f11e4439",
       "fired_tick": 0,
       "attempts": 1
@@ -52,7 +52,7 @@
       "tier": "incomum",
       "source": "0a009c7e-0acb-4a1e-8546-255de2fdbaed",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "queued",
+      "status": "done",
       "job_id": "84af39b9-3f30-47b4-8b9b-351bccde4f8c",
       "fired_tick": 0,
       "attempts": 1
@@ -63,7 +63,7 @@
       "tier": "incomum",
       "source": "ebb178b3-f8e8-42d3-b6ee-2a2d5ddc8fbc",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "queued",
+      "status": "done",
       "job_id": "fa54dcf8-7b8d-4afb-bc97-8132414900ab",
       "fired_tick": 0,
       "attempts": 1
@@ -74,7 +74,7 @@
       "tier": "incomum",
       "source": "4b34b445-3e14-415a-af59-40a1e45e8e66",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "queued",
+      "status": "done",
       "job_id": "61c735c6-cf76-4b8a-82d9-9d1977704489",
       "fired_tick": 0,
       "attempts": 1
@@ -85,7 +85,7 @@
       "tier": "incomum",
       "source": "972401a0-b799-4a3e-876f-157be9d29cd2",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "queued",
+      "status": "done",
       "job_id": "bd329976-22b3-431e-9da8-7a97e7b0e2aa",
       "fired_tick": 0,
       "attempts": 1
@@ -96,10 +96,10 @@
       "tier": "incomum",
       "source": "25728967-c03a-4bc8-b42c-cff77408f862",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "pending",
-      "job_id": null,
-      "fired_tick": null,
-      "attempts": 0
+      "status": "queued",
+      "job_id": "d5c87103-60c8-400d-8caf-b2bd36742d4b",
+      "fired_tick": 1,
+      "attempts": 1
     },
     {
       "folder": "trickster",
@@ -107,10 +107,10 @@
       "tier": "incomum",
       "source": "6176572c-cf0d-46c4-bb64-efacf0712bc8",
       "edit": "wearing reinforced leather armor with simple metal shoulder accents, a modest upgrade over basic gear, keep the same character and weapon",
-      "status": "pending",
-      "job_id": null,
-      "fired_tick": null,
-      "attempts": 0
+      "status": "queued",
+      "job_id": "b4ee2e4d-9f13-4979-a03f-21e6a86888e3",
+      "fired_tick": 1,
+      "attempts": 1
     },
     {
       "folder": "guardiao",
@@ -118,10 +118,10 @@
       "tier": "raro",
       "source": "e474e4f5-c58e-4df6-b4e9-33e602986b16",
       "edit": "wearing well-crafted iron plate armor with a colored cloak and an improved ornate weapon, keep the same character",
-      "status": "pending",
-      "job_id": null,
-      "fired_tick": null,
-      "attempts": 0
+      "status": "queued",
+      "job_id": "851e9918-e701-4460-a14b-b3c36ba3c9f5",
+      "fired_tick": 1,
+      "attempts": 1
     },
     {
       "folder": "guardiao",
@@ -129,10 +129,10 @@
       "tier": "raro",
       "source": "4840473e-fce5-4978-bf61-c83e390b69c2",
       "edit": "wearing well-crafted iron plate armor with a colored cloak and an improved ornate weapon, keep the same character",
-      "status": "pending",
-      "job_id": null,
-      "fired_tick": null,
-      "attempts": 0
+      "status": "queued",
+      "job_id": "01872d97-5590-42e0-b7de-2719c4cc56f2",
+      "fired_tick": 1,
+      "attempts": 1
     },
     {
       "folder": "destruidor",
@@ -140,10 +140,10 @@
       "tier": "raro",
       "source": "073350a1-ebf7-472a-9d86-c40e5c795cea",
       "edit": "wearing well-crafted iron plate armor with a colored cloak and an improved ornate weapon, keep the same character",
-      "status": "pending",
-      "job_id": null,
-      "fired_tick": null,
-      "attempts": 0
+      "status": "queued",
+      "job_id": "f3b4183b-3b73-4cb8-ab8e-58118f1fff49",
+      "fired_tick": 1,
+      "attempts": 1
     },
     {
       "folder": "destruidor",
@@ -151,10 +151,10 @@
       "tier": "raro",
       "source": "4ec2f53c-82fc-4334-a3c9-a682f00ea984",
       "edit": "wearing well-crafted iron plate armor with a colored cloak and an improved ornate weapon, keep the same character",
-      "status": "pending",
-      "job_id": null,
-      "fired_tick": null,
-      "attempts": 0
+      "status": "queued",
+      "job_id": "d7148e9d-d543-4ec5-8193-fb0fc13aa50b",
+      "fired_tick": 1,
+      "attempts": 1
     },
     {
       "folder": "arauto",
@@ -162,10 +162,10 @@
       "tier": "raro",
       "source": "0a009c7e-0acb-4a1e-8546-255de2fdbaed",
       "edit": "wearing well-crafted iron plate armor with a colored cloak and an improved ornate weapon, keep the same character",
-      "status": "pending",
-      "job_id": null,
-      "fired_tick": null,
-      "attempts": 0
+      "status": "queued",
+      "job_id": "e15e3f79-0a59-4331-accd-0d7e64211f0c",
+      "fired_tick": 1,
+      "attempts": 1
     },
     {
       "folder": "arauto",
@@ -173,10 +173,10 @@
       "tier": "raro",
       "source": "ebb178b3-f8e8-42d3-b6ee-2a2d5ddc8fbc",
       "edit": "wearing well-crafted iron plate armor with a colored cloak and an improved ornate weapon, keep the same character",
-      "status": "pending",
-      "job_id": null,
-      "fired_tick": null,
-      "attempts": 0
+      "status": "queued",
+      "job_id": "fd583083-d529-4468-9135-3e3122d93c0a",
+      "fired_tick": 1,
+      "attempts": 1
     },
     {
       "folder": "invocador",
