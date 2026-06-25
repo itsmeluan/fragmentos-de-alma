@@ -22,9 +22,9 @@ export function Modal({ visible, title, onClose, children, fill, containerStyle 
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable
+        <View
           style={[styles.container, fill && styles.containerFill, containerStyle]}
-          onPress={() => {}}
+          onStartShouldSetResponder={() => true}
         >
           <View style={styles.topAccent} />
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -39,7 +39,7 @@ export function Modal({ visible, title, onClose, children, fill, containerStyle 
             </View>
           )}
           {children}
-        </Pressable>
+        </View>
       </Pressable>
     </RNModal>
   )
