@@ -1,7 +1,11 @@
-import React, { useEffect, useCallback, useRef } from 'react'
+import React, { useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   View, Text, Pressable, StyleSheet, ScrollView, Alert,
 } from 'react-native'
+import {
+  BlurMask, Canvas, Circle, FilterMode, Image as SkiaImage,
+  MipmapMode, RadialGradient, Rect, useImage, vec,
+} from '@shopify/react-native-skia'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { theme } from '@/lib/theme'
@@ -11,9 +15,48 @@ import { useDungeonStore } from '@/store/dungeonStore'
 import { chooseEnemyAction } from '@/systems/battle/ai'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { EnemySprite } from '@/components/battle/EnemySprite'
+import { resolveHeroSprite } from '@/systems/visual/heroSprite'
+import { getAffinityPalette } from '@/systems/visual/affinityColors'
 import { isActiveSlot, isEnemySlot, isBenchSlot } from '@/systems/battle/types'
 import type { Combatant } from '@/systems/battle/types'
 import type { Skill } from '@/systems/skills/types'
+
+const SPRITE_ZOOM = 1.32
+
+function HeroSpriteSlot({ combatant, dim = 56 }: { combatant: Combatant; dim?: number }) {
+  const { essence, attributes } = combatant.genome
+  const aff = getAffinityPalette(essence.affinity)
+  const resolved = useMemo(
+    () => resolveHeroSprite(essence.core, combatant.rarity, attributes, 'south'),
+    [essence.core, combatant.rarity, attributes]
+  )
+  const image = useImage(resolved.source ?? undefined)
+  const spriteW = dim * SPRITE_ZOOM
+  const spriteX = (dim - spriteW) / 2
+  const spriteY = (dim - spriteW) / 2
+  const cx = dim / 2
+  const cy = dim * 0.52
+
+  return (
+    <Canvas style={{ width: dim, height: dim }}>
+      <Rect x={0} y={0} width={dim} height={dim}>
+        <RadialGradient c={vec(cx, cy)} r={dim * 0.7} colors={[aff.primary + '44', '#0A0A0F']} />
+      </Rect>
+      <Circle cx={cx} cy={cy} r={dim * 0.3} color={aff.glow} opacity={0.3}>
+        <BlurMask blur={dim * 0.1} style="normal" />
+      </Circle>
+      {image && (
+        <SkiaImage
+          image={image}
+          x={spriteX} y={spriteY}
+          width={spriteW} height={spriteW}
+          fit="contain"
+          sampling={{ filter: FilterMode.Nearest, mipmap: MipmapMode.None }}
+        />
+      )}
+    </Canvas>
+  )
+}
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
@@ -62,11 +105,9 @@ function HeroSlotView({ combatant, isSelected, isCurrent, onPress, onLongPress }
         {combatant.slot === 'front' ? 'F' : combatant.slot === 'center' ? 'C' : 'B'}
       </Text>
 
-      {/* Avatar */}
+      {/* Sprite pixel art */}
       <View style={[styles.heroGlyph, ultReady && styles.heroGlyphUlt]}>
-        <Text style={[styles.heroGlyphText, { color: rarityColor }]}>
-          {combatant.name.charAt(0)}
-        </Text>
+        <HeroSpriteSlot combatant={combatant} dim={52} />
       </View>
 
       <Text style={styles.heroName} numberOfLines={1}>{combatant.name}</Text>
@@ -93,7 +134,7 @@ function BenchSlotView({ combatant, onPress, swapMode }: {
       onPress={onPress}
       style={[styles.benchSlot, swapMode && styles.benchSlotSwap, { borderColor: rarityColor + '88' }]}
     >
-      <Text style={[styles.benchGlyphText, { color: rarityColor }]}>{combatant.name.charAt(0)}</Text>
+      <HeroSpriteSlot combatant={combatant} dim={40} />
       <ProgressBar value={combatant.currentHp / combatant.maxHp} type="hp" style={styles.benchHpBar} />
     </Pressable>
   )
