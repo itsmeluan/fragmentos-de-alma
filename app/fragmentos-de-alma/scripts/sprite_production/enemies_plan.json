@@ -1,0 +1,106 @@
+{
+  "concurrency": 8,
+  "tick": 0,
+  "states": [
+    {
+      "folder": "guardiao",
+      "build": "corrompido",
+      "source": "e474e4f5-c58e-4df6-b4e9-33e602986b16",
+      "edit": "corrupted version: body is cracked and leaking dark void energy, eyes glow with corrupt purple light, armor is shattered and covered in dark crystal growths, keep same silhouette and proportions",
+      "status": "queued",
+      "job_id": "89780025-4050-4e63-b816-69f7e873c102",
+      "fired_tick": 0,
+      "attempts": 1
+    },
+    {
+      "folder": "guardiao",
+      "build": "elite",
+      "source": "e474e4f5-c58e-4df6-b4e9-33e602986b16",
+      "edit": "powerful elite corrupted version: body is heavily fractured with large dark crystal spikes erupting from the armor, surrounded by a menacing dark aura, glowing void runes on the body, keep same silhouette and proportions but appear more threatening",
+      "status": "queued",
+      "job_id": "4568730f-16b2-4b4a-82db-3d69386970a7",
+      "fired_tick": 0,
+      "attempts": 1
+    },
+    {
+      "folder": "destruidor",
+      "build": "corrompido",
+      "source": "073350a1-ebf7-472a-9d86-c40e5c795cea",
+      "edit": "corrupted version: body is cracked and leaking dark void energy, eyes glow with corrupt purple light, armor is shattered and covered in dark crystal growths, keep same silhouette and proportions",
+      "status": "queued",
+      "job_id": "10e93303-164e-409d-ba95-c50d2bd24611",
+      "fired_tick": 0,
+      "attempts": 1
+    },
+    {
+      "folder": "destruidor",
+      "build": "elite",
+      "source": "073350a1-ebf7-472a-9d86-c40e5c795cea",
+      "edit": "powerful elite corrupted version: body is heavily fractured with large dark crystal spikes erupting from the armor, surrounded by a menacing dark aura, glowing void runes on the body, keep same silhouette and proportions but appear more threatening",
+      "status": "queued",
+      "job_id": "8467eb71-2ab6-448f-b19b-cab39c60dffb",
+      "fired_tick": 0,
+      "attempts": 1
+    },
+    {
+      "folder": "arauto",
+      "build": "corrompido",
+      "source": "0a009c7e-0acb-4a1e-8546-255de2fdbaed",
+      "edit": "corrupted version: body is cracked and leaking dark void energy, eyes glow with corrupt purple light, armor is shattered and covered in dark crystal growths, keep same silhouette and proportions",
+      "status": "queued",
+      "job_id": "bd85d390-d8d5-433e-a973-9577b44573bd",
+      "fired_tick": 0,
+      "attempts": 1
+    },
+    {
+      "folder": "arauto",
+      "build": "elite",
+      "source": "0a009c7e-0acb-4a1e-8546-255de2fdbaed",
+      "edit": "powerful elite corrupted version: body is heavily fractured with large dark crystal spikes erupting from the armor, surrounded by a menacing dark aura, glowing void runes on the body, keep same silhouette and proportions but appear more threatening",
+      "status": "queued",
+      "job_id": "79020d68-3a13-41f2-bf01-df475d4f1c2f",
+      "fired_tick": 0,
+      "attempts": 1
+    },
+    {
+      "folder": "invocador",
+      "build": "corrompido",
+      "source": "4b34b445-3e14-415a-af59-40a1e45e8e66",
+      "edit": "corrupted version: body is cracked and leaking dark void energy, eyes glow with corrupt purple light, armor is shattered and covered in dark crystal growths, keep same silhouette and proportions",
+      "status": "queued",
+      "job_id": "684d5c3c-ec20-4b58-b537-7054638f096b",
+      "fired_tick": 0,
+      "attempts": 1
+    },
+    {
+      "folder": "invocador",
+      "build": "elite",
+      "source": "4b34b445-3e14-415a-af59-40a1e45e8e66",
+      "edit": "powerful elite corrupted version: body is heavily fractured with large dark crystal spikes erupting from the armor, surrounded by a menacing dark aura, glowing void runes on the body, keep same silhouette and proportions but appear more threatening",
+      "status": "queued",
+      "job_id": "5a9fc277-3346-4106-be3f-9ddbf2a156fa",
+      "fired_tick": 0,
+      "attempts": 1
+    },
+    {
+      "folder": "trickster",
+      "build": "corrompido",
+      "source": "25728967-c03a-4bc8-b42c-cff77408f862",
+      "edit": "corrupted version: body is cracked and leaking dark void energy, eyes glow with corrupt purple light, armor is shattered and covered in dark crystal growths, keep same silhouette and proportions",
+      "status": "pending",
+      "job_id": null,
+      "fired_tick": null,
+      "attempts": 0
+    },
+    {
+      "folder": "trickster",
+      "build": "elite",
+      "source": "25728967-c03a-4bc8-b42c-cff77408f862",
+      "edit": "powerful elite corrupted version: body is heavily fractured with large dark crystal spikes erupting from the armor, surrounded by a menacing dark aura, glowing void runes on the body, keep same silhouette and proportions but appear more threatening",
+      "status": "pending",
+      "job_id": null,
+      "fired_tick": null,
+      "attempts": 0
+    }
+  ]
+}
