@@ -74,12 +74,12 @@ Cada base ganha variantes de equipamento progressivamente mais elaboradas. Como 
 | Incomum | acessório simples, leve melhoria de armadura | ⬜ a gerar |
 | Raro | armadura definida, arma melhor | ⬜ a gerar |
 | Épico | armadura ornada, capa, detalhes | ⬜ a gerar |
-| Lendário | armadura divina/rúnica brilhante, arma épica | 🔄 gerando (8 em fila) |
-| Único | tratamento exclusivo, 1-off | ⬜ decidir (gerar sob demanda?) |
+| Lendário | armadura divina/rúnica brilhante, arma épica | 🔄 gerando |
+| Único | ✅ **sprite dedicado** — tratamento exclusivo por build | ⬜ a gerar (10) |
 
-**Contagem:** 8 bases × 5 tiers visuais (Incomum→Único) = **40 estados** + 8 bases = **48 sprites de herói**.
+**Contagem:** 10 builds base + (10 builds × 4 tiers Incomum→Lendário = 40 estados) + 10 Únicos dedicados = **60 sprites de herói**.
 
-> Único pode ser tratado como Lendário + glow/efeito Skia especial, evitando geração dedicada. Recomendado para o MVP.
+> Decisão §19.2: o tier Único tem sprite dedicado por build (não é Lendário+Skia). São os heróis mais raros do jogo e merecem silhueta/equipamento próprios.
 
 ### 2.3 Animações (PixelLab `animate_character`)
 PixelLab oferege +49 templates (breathing-idle, fight-stance, fireball, death, etc.). Para o MVP de batalha:
@@ -184,27 +184,31 @@ O doc 11 define o mapa como **Skia puro** (paths, partículas, animações). Pix
 
 ## 7. ÍCONES (PixelLab para ilustrados; Skia/SVG para geométricos)
 
-### 7.1 Símbolos Geométricos → **Skia/SVG** (NÃO PixelLab)
-Doc 10 já define como símbolos alquímicos vetoriais. Ficam em código:
+### 7.1 Símbolos Funcionais → **PixelLab pixel art** (decisão §19.4)
+Gerados em tamanho-alvo, renderizados com nearest-neighbor:
 
 | Conjunto | Qtd | Ferramenta |
 |---|---|---|
-| Afinidades (Fogo, Água, Terra, Vento, Vazio, Luz, Sombra, Éter) | 8 | Skia/SVG |
-| Núcleos (Guardião, Destruidor, Arauto, Trickster, Invocador) | 5 | Skia/SVG |
-| Mutações (INVERSO, ESPELHO, ANCESTRAL, CAOS, TRANSCENDENCIA) | 5 | Skia/SVG |
-| Recursos (Fragmentos 🔷, Cristais 💎, Ecos ✨) | 3 | Skia/SVG ou PixelLab |
-| Navegação inferior (Mapa, Coleção, Fusão, Kael, Mais) | 5 | SVG line icons |
-| Ações UI (equipar, aposentar, filtrar, fechar, etc.) | ~10 | SVG line icons |
+| Afinidades (Fogo, Água, Terra, Vento, Vazio, Luz, Sombra, Éter) | 8 | PixelLab |
+| Núcleos (Guardião, Destruidor, Arauto, Trickster, Invocador) | 5 | PixelLab |
+| Mutações (INVERSO, ESPELHO, ANCESTRAL, CAOS, TRANSCENDENCIA) | 5 | PixelLab |
+| Recursos (Fragmentos 🔷, Cristais 💎, Ecos ✨) | 3 | PixelLab |
+| Selos de raridade | 6 | PixelLab |
 
-### 7.2 Ícones Ilustrados → **PixelLab** (opcional, se quiser pixel art)
+### 7.2 Ícones de UI / Navegação → **SVG** (interface, não temáticos)
+Estes permanecem vetoriais por serem puramente funcionais e mudarem de tamanho/estado com frequência:
+
+| Conjunto | Qtd | Ferramenta |
+|---|---|---|
+| Navegação inferior (Mapa, Coleção, Fusão, Kael, Mais) | 5 | SVG line icons |
+| Ações UI (equipar, aposentar, filtrar, fechar, voltar, etc.) | ~10 | SVG line icons |
+
+### 7.3 Emblemas de Facção → **PixelLab** (ilustrados, ricos)
 | Conjunto | Qtd | Nota |
 |---|---|---|
-| Emblemas de facção (ilustrados) | 7 | versão rica vs símbolo simples |
-| Ícone de raridade (selo) | 6 | pode ser Skia |
+| Emblemas de facção | 7 | ilustrados, usados no mapa e tela de facção |
 
-**Decisão:** para coesão pixel art, recursos e emblemas de facção podem ser pixelados no PixelLab. Símbolos de afinidade/núcleo/mutação ficam melhor vetoriais (nitidez em qualquer tamanho). **Recomendado:** símbolos = SVG; recursos + facções = PixelLab.
-
-**Contagem PixelLab (ícones):** ~**13-16** (3 recursos + 7 facções + 6 raridade opcional).
+**Contagem PixelLab (ícones §7):** ~**34** (8 afinidades + 5 núcleos + 5 mutações + 3 recursos + 6 raridade + 7 facções). UI/navegação (~15) = SVG.
 
 ---
 
@@ -279,27 +283,27 @@ Habilidades são **procedurais** (doc 03): combinam GATILHO + EFEITO + CONDIÇÃ
 | Ultimate | moldura dourada com glow |
 | Emergente | moldura especial com ícone de descoberta |
 
-**Contagem:** 9 SVG de efeito + 4 molduras = Skia/SVG. **Zero PixelLab** (a menos que se queira ilustração pixel art dos efeitos — opcional, ~9 sprites).
+**Contagem (decisão §19.4):** **9 ícones de efeito em pixel art (PixelLab)** + 4 molduras de categoria em Skia. Tint de afinidade e glow de ultimate continuam em Skia por cima do ícone pixel.
 
 ---
 
 ## 12. ATRIBUTOS & GENOMA — Visualização (Skia/SVG)
 
-### 12.1 Ícones de Atributo → SVG (6, do `ATTRIBUTE_GENES`)
-Força, Ressonância, Resistência, Agilidade, Vontade, Aura. **6 ícones SVG line.**
+### 12.1 Ícones de Atributo → **PixelLab pixel art** (6, do `ATTRIBUTE_GENES`)
+Força, Ressonância, Resistência, Agilidade, Vontade, Aura. **6 ícones pixel art** (decisão §19.4).
 
 ### 12.2 Visualização de Genoma → Skia
 | Elemento | Ferramenta |
 |---|---|
 | Hexágono de atributos (radar chart) | Skia |
 | Cards dos 12 genes | Skia/SVG |
-| Badges de mutação (5: INVERSO, ESPELHO, ANCESTRAL, CAOS, TRANSCENDENCIA) | SVG |
+| Badges de mutação (5) — contados em §7.1 (PixelLab) | PixelLab |
 | Linhas de transmutação no corpo do herói | Skia (dash-offset) |
 
 ### 12.3 Vínculo / Bond → SVG
 5 estrelas + diálogos desbloqueados. **1 ícone de estrela (cheia/vazia).**
 
-**Contagem:** 6 atributos + 5 mutações + 1 estrela = SVG. Genoma/radar = Skia. **Zero PixelLab.**
+**Contagem:** 6 atributos (PixelLab) + 1 estrela de vínculo (SVG). Mutações já em §7.1. Genoma/radar/linhas de transmutação = Skia.
 
 ---
 
@@ -337,9 +341,9 @@ Telas: `dungeon/[biomeId]`, `between`, `battle`, `tower`, `tower-between`, `towe
 | Descanso/forja | fogueira/bigorna |
 | Evento de facção | estandarte |
 
-**6 ícones de nó.** SVG recomendado; pixel art opcional.
+**6 ícones de nó em pixel art** (decisão §19.4).
 
-**Contagem PixelLab dungeon:** ~1-2 (torre) + 6 nós opcionais.
+**Contagem PixelLab dungeon:** ~1-2 (torre) + 6 nós.
 
 ---
 
@@ -353,7 +357,7 @@ Doc 06. O motor usa `StatusEffect` com tipos `buff`/`debuff`/`shield`. Ícones 1
 | Debuff | veneno, queimadura, atordoamento, lentidão, fraqueza, sangramento |
 | Especial | drenagem, marca, invocação |
 
-**~12-16 ícones de status (SVG).** Tint por tipo (verde buff / vermelho debuff). **Zero PixelLab.**
+**~12-16 ícones de status em pixel art (PixelLab)** (decisão §19.4). Tint por tipo (verde buff / vermelho debuff) aplicado em Skia por cima.
 
 ---
 
@@ -395,21 +399,22 @@ Inventário **completo** de telas e seu fundo. Muitos compartilham o fundo base 
 |---|---|---|
 | Heróis — bases por núcleo/build (2 por núcleo) | 10 | 🔄 8 feitos + 2 em fila |
 | Heróis — estados de raridade (10 builds × 4 tiers) | 40 | 🔄 lendário em fila |
-| Heróis — animações (bases) | ~5 × 10 | ⬜ |
+| Heróis — tier Único dedicado (1 por build) | 10 | ⬜ |
+| Heróis — animações (só bases) | ~5 × 10 | ⬜ |
 | Inimigos corrompidos | ~10 | ⬜ |
 | Chefes (7 × 3 fases) | 21 | ⬜ |
 | Backgrounds de origem | 5 | ⬜ |
 | Backgrounds de batalha (7 × 2) | 14 | ⬜ |
-| Background da Torre (§14) | 1-2 | ⬜ |
+| Background da Torre | 1-2 | ⬜ |
 | Backgrounds de tela (login, coleção, perfil, loja) | 4-5 | ⬜ |
-| Ornamentos/ícones de mapa | 8-12 | ⬜ |
-| Ícones ilustrados (recursos + facções) | 13-16 | ⬜ |
+| Ornamentos de mapa + emblemas de facção | 15-19 | ⬜ |
+| Ícones pixel: afinidade(8)+núcleo(5)+mutação(5)+recursos(3)+raridade(6) | 27 | ⬜ |
+| Ícones pixel: efeito(9)+atributo(6)+status(~14)+nó(6) | ~35 | ⬜ |
 | Avatar de Kael (4 estágios) | 4 | ⬜ |
-| Ícones de nó de legado/dungeon (opcional pixel) | ~14-18 | ⬜ |
 | Ícones de app (revisão) | 3 | parcial |
-| **TOTAL aproximado** | **~160-185 sprites** | |
+| **TOTAL aproximado** | **~210-235 sprites** | |
 
-> Itens "opcionais pixel" (ícones de efeito, nó, status) podem ser SVG — nesse caso o total PixelLab cai para ~130-150.
+> UI/navegação (~15 ícones) e estrutura de genoma/legado/mapa permanecem SVG/Skia. Todos os ícones **funcionais e temáticos** são pixel art (decisão §19.4).
 
 ### Skia (composição procedural — variação infinita)
 
@@ -422,13 +427,14 @@ Inventário **completo** de telas e seu fundo. Muitos compartilham o fundo base 
 - Estados de corrupção do mapa (overlays graduais)
 - Mapa de Solum inteiro (paths, partículas, fronteiras, rosa dos ventos animada)
 - Círculo alquímico de fusão (rotação dupla)
-- Símbolos de afinidade/núcleo/mutação (SVG)
-- Ícones de habilidade por família de efeito (9 SVG) + molduras de categoria
-- Ícones de atributo (6 SVG) + hexágono/radar de genoma + badges de mutação
-- Ícones de status effect em batalha (~12-16 SVG, tint buff/debuff)
-- Árvore de legado (estrutura, nós, conexões) + moldura de herói aposentado
-- Ícones de nó de dungeon (combate/elite/chefe/tesouro/descanso/evento)
+- Tint/coloração por afinidade aplicada SOBRE os ícones pixel (afinidade, efeito, status)
+- Molduras de categoria de habilidade (ativa/passiva/ultimate com glow) + glow de raridade
+- Hexágono/radar de genoma + linhas de transmutação animadas no corpo
+- Estrutura da árvore de legado (nós, conexões, layout) + moldura de herói aposentado (filtro monocromático)
+- Ícones de UI/navegação (~15 SVG line) — barra inferior, ações, voltar/fechar
 - HUD: barras (HP/XP/Ultimate), divisores, badges, números de dano, vínculo (estrelas)
+
+> Ícones **funcionais e temáticos** (afinidade, núcleo, mutação, efeito, atributo, status, nó, recursos, facções, raridade) são **pixel art PixelLab** — Skia apenas aplica tint/glow por cima. Apenas ícones de UI pura (navegação, ações) ficam em SVG.
 
 ### A Multiplicação (por que parece infinito)
 
@@ -462,13 +468,15 @@ Sprites PixelLab → baixados e versionados em **Supabase Storage** (`heroes/spr
 
 ---
 
-## 19. DECISÕES PENDENTES DO USUÁRIO
+## 19. DECISÕES TOMADAS ✅
 
-1. ✅ **Builds por núcleo** (§1) — RESOLVIDO: 2 builds por núcleo (10 sprites).
-2. **Tier Único:** gerar dedicado ou Lendário + efeito Skia? — recomendado: Skia.
-3. **Animações:** só bases ou por tier? — recomendado: só bases.
-4. **Símbolos/ícones (afinidade, núcleo, efeito, atributo, status, nó):** SVG vetorial ou pixel art? — recomendado: SVG (nitidez em qualquer escala).
-5. **Recursos/facções:** pixel art (coesão) ou vetorial? — recomendado: pixel art.
+1. ✅ **Builds por núcleo** (§1): 2 builds por núcleo = **10 sprites base**.
+2. ✅ **Tier Único:** **sprite dedicado por núcleo** — +10 sprites Único exclusivos no PixelLab (1 por build), com equipamento/silhueta próprios.
+3. ✅ **Animações:** **só as bases** (10 builds) — glow Skia diferencia os tiers em movimento.
+4. ✅ **Ícones funcionais** (afinidade, núcleo, efeito, atributo, status, nó de dungeon, mutação): **pixel art no PixelLab** — coesão total com os personagens.
+5. ✅ **Recursos e facções:** **pixel art no PixelLab**.
+
+> **Nota técnica (ícones pixel art):** gerar cada ícone no tamanho de exibição-alvo (ex: 32px, 48px) e renderizar com nearest-neighbor (sem antialias) para manter a nitidez pixel. Evitar escalar um ícone pixel para tamanhos muito diferentes do gerado.
 
 ---
 *v0.1 — mapeamento inicial. Atualizar conforme assets são gerados e decisões são tomadas. Registrar geração concluída marcando ✅ nas tabelas.*
