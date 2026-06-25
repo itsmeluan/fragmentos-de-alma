@@ -72,11 +72,9 @@ export function SplashAnimation({
       <VideoView
         player={player}
         style={styles.video}
-        contentFit="cover"
+        contentFit="contain"
         nativeControls={false}
       />
-      {/* Overlay escuro nas bordas para mascarar artefatos de borda do vídeo */}
-      <View style={styles.vignette} pointerEvents="none" />
     </Animated.View>
   )
 }
@@ -92,13 +90,5 @@ const styles = StyleSheet.create({
   video: {
     width: SW,
     height: SH,
-  },
-  // Vinheta sutil — radial escuro nas bordas, deixa o centro da arte mais vivo
-  vignette: {
-    ...StyleSheet.absoluteFill,
-    // Não há suporte nativo a gradiente radial sem lib, mas podemos
-    // usar uma borda grossa escura sobreposta para simular o efeito
-    borderWidth: SW * 0.15,
-    borderColor: 'rgba(10,10,15,0.55)',
   },
 })
