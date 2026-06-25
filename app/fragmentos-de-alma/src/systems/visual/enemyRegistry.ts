@@ -1,0 +1,117 @@
+// AUTO-GERADO — não editar à mão. Gerado por scripts/sprite_production/gen_enemy_registry.py
+// 5 núcleos × 2 variantes × 8 direções = 80 sprites
+export type SpriteDirection = 'south' | 'east' | 'north' | 'west' | 'south-east' | 'north-east' | 'north-west' | 'south-west'
+export type EnemyVariant = 'corrompido' | 'elite'
+
+export const ENEMY_REGISTRY: Record<string, Record<EnemyVariant, Record<SpriteDirection, number>>> = {
+  arauto: {
+    corrompido: {
+      south: require('../../../assets/sprites/enemies/arauto/corrompido/south.png'),
+      east: require('../../../assets/sprites/enemies/arauto/corrompido/east.png'),
+      north: require('../../../assets/sprites/enemies/arauto/corrompido/north.png'),
+      west: require('../../../assets/sprites/enemies/arauto/corrompido/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/arauto/corrompido/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/arauto/corrompido/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/arauto/corrompido/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/arauto/corrompido/south-west.png'),
+    },
+    elite: {
+      south: require('../../../assets/sprites/enemies/arauto/elite/south.png'),
+      east: require('../../../assets/sprites/enemies/arauto/elite/east.png'),
+      north: require('../../../assets/sprites/enemies/arauto/elite/north.png'),
+      west: require('../../../assets/sprites/enemies/arauto/elite/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/arauto/elite/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/arauto/elite/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/arauto/elite/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/arauto/elite/south-west.png'),
+    },
+  },
+  destruidor: {
+    corrompido: {
+      south: require('../../../assets/sprites/enemies/destruidor/corrompido/south.png'),
+      east: require('../../../assets/sprites/enemies/destruidor/corrompido/east.png'),
+      north: require('../../../assets/sprites/enemies/destruidor/corrompido/north.png'),
+      west: require('../../../assets/sprites/enemies/destruidor/corrompido/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/destruidor/corrompido/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/destruidor/corrompido/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/destruidor/corrompido/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/destruidor/corrompido/south-west.png'),
+    },
+    elite: {
+      south: require('../../../assets/sprites/enemies/destruidor/elite/south.png'),
+      east: require('../../../assets/sprites/enemies/destruidor/elite/east.png'),
+      north: require('../../../assets/sprites/enemies/destruidor/elite/north.png'),
+      west: require('../../../assets/sprites/enemies/destruidor/elite/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/destruidor/elite/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/destruidor/elite/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/destruidor/elite/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/destruidor/elite/south-west.png'),
+    },
+  },
+  guardiao: {
+    corrompido: {
+      south: require('../../../assets/sprites/enemies/guardiao/corrompido/south.png'),
+      east: require('../../../assets/sprites/enemies/guardiao/corrompido/east.png'),
+      north: require('../../../assets/sprites/enemies/guardiao/corrompido/north.png'),
+      west: require('../../../assets/sprites/enemies/guardiao/corrompido/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/guardiao/corrompido/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/guardiao/corrompido/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/guardiao/corrompido/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/guardiao/corrompido/south-west.png'),
+    },
+    elite: {
+      south: require('../../../assets/sprites/enemies/guardiao/elite/south.png'),
+      east: require('../../../assets/sprites/enemies/guardiao/elite/east.png'),
+      north: require('../../../assets/sprites/enemies/guardiao/elite/north.png'),
+      west: require('../../../assets/sprites/enemies/guardiao/elite/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/guardiao/elite/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/guardiao/elite/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/guardiao/elite/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/guardiao/elite/south-west.png'),
+    },
+  },
+  invocador: {
+    corrompido: {
+      south: require('../../../assets/sprites/enemies/invocador/corrompido/south.png'),
+      east: require('../../../assets/sprites/enemies/invocador/corrompido/east.png'),
+      north: require('../../../assets/sprites/enemies/invocador/corrompido/north.png'),
+      west: require('../../../assets/sprites/enemies/invocador/corrompido/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/invocador/corrompido/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/invocador/corrompido/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/invocador/corrompido/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/invocador/corrompido/south-west.png'),
+    },
+    elite: {
+      south: require('../../../assets/sprites/enemies/invocador/elite/south.png'),
+      east: require('../../../assets/sprites/enemies/invocador/elite/east.png'),
+      north: require('../../../assets/sprites/enemies/invocador/elite/north.png'),
+      west: require('../../../assets/sprites/enemies/invocador/elite/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/invocador/elite/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/invocador/elite/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/invocador/elite/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/invocador/elite/south-west.png'),
+    },
+  },
+  trickster: {
+    corrompido: {
+      south: require('../../../assets/sprites/enemies/trickster/corrompido/south.png'),
+      east: require('../../../assets/sprites/enemies/trickster/corrompido/east.png'),
+      north: require('../../../assets/sprites/enemies/trickster/corrompido/north.png'),
+      west: require('../../../assets/sprites/enemies/trickster/corrompido/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/trickster/corrompido/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/trickster/corrompido/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/trickster/corrompido/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/trickster/corrompido/south-west.png'),
+    },
+    elite: {
+      south: require('../../../assets/sprites/enemies/trickster/elite/south.png'),
+      east: require('../../../assets/sprites/enemies/trickster/elite/east.png'),
+      north: require('../../../assets/sprites/enemies/trickster/elite/north.png'),
+      west: require('../../../assets/sprites/enemies/trickster/elite/west.png'),
+      'south-east': require('../../../assets/sprites/enemies/trickster/elite/south-east.png'),
+      'north-east': require('../../../assets/sprites/enemies/trickster/elite/north-east.png'),
+      'north-west': require('../../../assets/sprites/enemies/trickster/elite/north-west.png'),
+      'south-west': require('../../../assets/sprites/enemies/trickster/elite/south-west.png'),
+    },
+  },
+}

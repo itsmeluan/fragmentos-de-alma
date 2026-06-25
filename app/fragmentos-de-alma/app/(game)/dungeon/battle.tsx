@@ -10,36 +10,25 @@ import { useGameStore } from '@/store/gameStore'
 import { useDungeonStore } from '@/store/dungeonStore'
 import { chooseEnemyAction } from '@/systems/battle/ai'
 import { ProgressBar } from '@/components/ui/ProgressBar'
+import { EnemySprite } from '@/components/battle/EnemySprite'
 import { isActiveSlot, isEnemySlot, isBenchSlot } from '@/systems/battle/types'
 import type { Combatant } from '@/systems/battle/types'
 import type { Skill } from '@/systems/skills/types'
 
-// ─── Cores de afinidade (doc 02) ─────────────────────────────────────────────
-
-const AFFINITY_COLORS: Record<string, string> = {
-  Fogo: '#C0392B', Água: '#2E5FA3', Terra: '#5D4037',
-  Ar: '#80DEEA', Éter: '#7B1FA2', Vazio: '#37474F',
-}
-
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
-function EnemySlotView({ combatant, onPress, targeted }: {
+function EnemySlotView({ combatant, biomeId, onPress, targeted }: {
   combatant: Combatant
+  biomeId?: string
   onPress?: () => void
   targeted?: boolean
 }) {
-  const affColor = AFFINITY_COLORS[combatant.genome.essence.affinity] ?? theme.colors.border.subtle
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.enemySlot, targeted && styles.enemySlotTargeted, { borderColor: affColor }]}
+      style={[styles.enemySlot, targeted && styles.enemySlotTargeted]}
     >
-      {/* Placeholder visual de inimigo */}
-      <View style={[styles.enemyGlyph, { backgroundColor: affColor + '33' }]}>
-        <Text style={[styles.enemyGlyphText, { color: affColor }]}>
-          {combatant.name.charAt(0)}
-        </Text>
-      </View>
+      <EnemySprite combatant={combatant} biomeId={biomeId} size={64} targeted={targeted} />
       <Text style={styles.enemyName} numberOfLines={1}>{combatant.name}</Text>
       <ProgressBar value={combatant.currentHp / combatant.maxHp} type="hp" style={styles.enemyHpBar} />
       <Text style={styles.enemyHpText}>{combatant.currentHp}/{combatant.maxHp}</Text>
@@ -162,8 +151,9 @@ export default function BattleScreen() {
     confirmSkill, confirmDefend, confirmUltimate, beginSwap,
     confirmSwap, applyEnemyAction, clearBattle,
   } = useBattleStore()
-  const { recordVictory, recordDefeat } = useDungeonStore()
+  const { recordVictory, recordDefeat, session } = useDungeonStore()
   const { grantDungeonDrop } = useGameStore()
+  const biomeId = session?.biome
 
   // Processar turno de inimigo automaticamente após o estado mudar
   useEffect(() => {
@@ -302,6 +292,7 @@ export default function BattleScreen() {
             <EnemySlotView
               key={e.id}
               combatant={e}
+              biomeId={biomeId}
               targeted={isTargetingEnemy}
               onPress={() => handleEnemyPress(e.id)}
             />
