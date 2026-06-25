@@ -4,9 +4,10 @@
 DO $$
 DECLARE
   v_user_id uuid;
-  origins    text[] := ARRAY['Celestial','Abissal','Gnésico','Forjado','Étreo','Sombrio','Verdante'];
-  affinities text[] := ARRAY['Fogo','Gelo','Vento','Terra','Luz','Sombra','Vazio','Trovão'];
-  cores      text[] := ARRAY['Guardião','Arauto','Invocador','Fragmentador','Ancião','Vidente','Caçador','Sentinela'];
+  -- Valores canônicos (ver src/lib/constants.ts: ORIGINS, AFFINITIES, CORES)
+  origins    text[] := ARRAY['Abissal','Celestial','Primordial','Forjada','Errante'];
+  affinities text[] := ARRAY['Fogo','Água','Terra','Vento','Vazio','Luz','Sombra','Éter'];
+  cores      text[] := ARRAY['Guardião','Destruidor','Arauto','Trickster','Invocador'];
   glows      text[] := ARRAY['#E040FB','#00E5FF','#FF6D00','#69F0AE','#FFD600','#F06292','#00BCD4'];
   primaries  text[] := ARRAY['#1A1A2E','#0D1B2A','#1A0A00','#0A1F00','#1A1A00','#1A0A1A','#00121A'];
   secondaries text[] := ARRAY['#6A0572','#1B4F72','#7B2C00','#1B5E20','#4A3F00','#4A0E4E','#003D4A'];
