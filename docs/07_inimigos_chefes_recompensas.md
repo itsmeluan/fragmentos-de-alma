@@ -278,7 +278,7 @@ Além das recompensas padrão, batalhas têm **condições bônus** que multipli
 | Vencer sem usar Ultimate | +1 Cristal de Essência |
 | Vencer em menos de 5 turnos | Fragmento de Gene Específico garantido |
 | Vencer com time de mesma ORIGEM | Eco Bônus |
-| Vencer chefe na primeira tentativa | Cosmético exclusivo de "primeira vitória" |
+| Vencer chefe na **primeira tentativa** (`boss_first_try`) | `cosmetic_hero_frame` — borda cosmética exclusiva de herói |
 
 Condições são exibidas antes da batalha começar — o jogador decide se quer tentar cumpri-las.
 
@@ -301,8 +301,8 @@ Condições são exibidas antes da batalha começar — o jogador decide se quer
 **Sistema de Memória de Recompensa:**
 O jogo mantém um histórico das últimas 5 recompensas recebidas. O gerador de loot evita repetir qualquer item desse histórico — sempre que possível, oferece algo diferente.
 
-**Sistema de Pity de Recompensa:**
-Se o jogador completou 10 batalhas sem receber nenhuma recompensa rara, a próxima batalha garante pelo menos 1 item incomum ou superior.
+**Sistema de Pity de Recompensa (`PITY_THRESHOLD = 10`):**
+Se o jogador completou 10 batalhas sem receber nenhuma recompensa rara, a próxima batalha garante pelo menos 1 item incomum ou superior. O contador de pity é rastreado no `battleStore` e persiste entre sessões.
 
 **Recompensa de Sequência:**
 Vitórias consecutivas sem derrota constroem um multiplicador de loot (1x → 1.2x → 1.5x → 2x, máximo). Perder uma batalha zera o multiplicador — mas não pune além disso.

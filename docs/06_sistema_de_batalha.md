@@ -92,13 +92,20 @@ A ordem de ação é determinada pelo gene **AGILIDADE** de cada entidade em cam
 
 ## Habilidades em Combate
 
-Cada herói possui:
+O número de habilidades por herói varia com a raridade (ver tabela canônica em `doc 03`, seção "Número de Habilidades por Entidade"):
 
-| Tipo | Quantidade | Como funciona |
-|---|---|---|
-| **Ativas** | 3 | Aparecem na roda de ações; têm cooldown em turnos |
-| **Ultimate** | 1 | Carrega por dano dado/recebido; toque longo para ativar |
-| **Passivas** | 2 | Sempre ativas; sem interação direta; ícones visíveis abaixo do herói |
+| Raridade | Ativas | Passivas | Únicas |
+|---|---|---|---|
+| Comum | 1 | 1 | — |
+| Incomum | 1 | 1 | — |
+| Raro | 2 | 1 | — |
+| Épico | 2 | 2 | — |
+| Lendário | 2 | 2 | 1 |
+| Único | 3 | 2 | 2 |
+
+Em batalha, as **ativas** aparecem na roda de ações com cooldown em turnos do próprio herói. A **Única** (denominada "Ultimate" na UI) carrega via dano dado/recebido e é ativada com toque longo. As **passivas** são sempre ativas com ícones visíveis abaixo do herói.
+
+> **Nota:** habilidades emergentes (`emergent`) existem como campo no tipo `HeroSkills` mas as regras de geração de emergentes são escopo de revisão futura — por enquanto nenhuma é gerada.
 
 ### Cooldowns de Ativas
 - Habilidades usadas ficam acinzentadas com contador numérico visível
@@ -110,7 +117,8 @@ Cada herói possui:
 - Carrega com: dano causado, dano recebido, morte de aliado, morte de inimigo
 - Taxa de carga varia por gene RESSONÂNCIA
 - Ao completar: barra pulsa e herói recebe contorno visual especial
-- Heróis no banco **continuam carregando** a barra passivamente (50% da taxa normal)
+- Heróis no banco **continuam carregando** a barra passivamente a **50% da taxa normal** (`ultimateChargeOnBench: 0.5` — D62)
+  - Isso significa que heróis guardados para entrar já entram com barra parcialmente carregada, criando decisão estratégica de timing de troca
 
 ### Passivas Visíveis
 - Dois ícones pequenos permanentes abaixo do herói
@@ -170,8 +178,23 @@ Passivas evoluem automaticamente nos níveis 20 e 45, sem escolha do jogador. Is
 | Duração média de batalha | 3–7 minutos |
 | Batalhas por andar de dungeon | 3 |
 | Heróis inimigos por batalha | 1–4 (escala por bioma) |
-| Recuperação de HP entre batalhas | 30% do HP máximo |
+| Recuperação de HP entre batalhas | **30% do HP máximo** (`hpRecoveryBetweenBattles: 0.3`) |
 | Recuperação de Ultimate entre batalhas | mantida (não zera) |
+
+### Fórmulas de Stat
+
+**HP Máximo** (implementado em `engine.ts`):
+```
+hpMax = resistencia × 10 + level × 20 + 100
+```
+
+**Dano Base** (implementado em `engine.ts`):
+```
+danoBase = (forca × atributoFator) + (ressonancia × elementalFator)
+danoFinal = danoBase × modificadorDePosicao × modificadorDeHabilidade
+```
+
+> Fórmulas exatas registradas como D24 em `docs/09_roadmap_mvp.md`.
 
 > Entre batalhas de um mesmo andar, o jogador pode **reorganizar posições** e **trocar heróis ativos/banco** livremente.
 

@@ -56,18 +56,32 @@ O jogador define uma meta de fusão (ex: "quero um Lendário de ORIGEM Abissal +
 Isso dá direção sem tirar a surpresa — os genes ainda variam, e o resultado final nunca é exatamente o planejado.
 
 **Desbloqueio de Biomas**
-- 6 biomas disponíveis, cada um com fragmentos exclusivos
+- 13 biomas/territórios disponíveis (D61), cada um com fragmentos exclusivos
 - Desbloqueio por marcos de poder da conta (não por paywall)
 - Cada bioma tem narrativa própria que se revela conforme explorado
 
-| Bioma | Fragmentos exclusivos | Desbloqueio |
+**Biomas base (6 originais):**
+
+| Bioma | ORIGEM predominante | Desbloqueio |
 |---|---|---|
-| Cavernas do Abismo | ORIGEM Abissal | Inicial |
-| Pináculo Celestial | ORIGEM Celestial | 10 fusões |
-| Floresta Primordial | ORIGEM Primordial | 1 Raro criado |
-| Forja Eterna | ORIGEM Forjada | 1 Épico criado |
-| Mar do Éter | AFINIDADE Éter/Vazio | 1 Lendário criado |
-| Vazio Fragmentado | Mutações raras | 50 heróis no legado |
+| Cavernas do Abismo | Abissal | Inicial |
+| Pináculo Celestial | Celestial | 10 fusões |
+| Floresta Primordial | Primordial | 1 Raro criado |
+| Forja Eterna | Forjada | 1 Épico criado |
+| Mar do Éter | Éter/Vazio | 1 Lendário criado |
+| Vazio Fragmentado | Mutações raras | Score de Legado ≥ 100 (T3) |
+
+**Territórios de Solum (7 adicionados no Passo 22, D61):**
+
+| Território | Facção | Desbloqueio |
+|---|---|---|
+| Axis | Arquitetos do Véu | progressão no mapa |
+| Cinderfall | Chama Negra | progressão no mapa |
+| Kethara | inicial / padrão | inicial |
+| Limiar | — | progressão no mapa |
+| Mnemos | — | progressão no mapa |
+| Venula | — | progressão no mapa |
+| Verdania | — | progressão no mapa |
 
 **Eventos Semanais**
 - Todo ciclo de 7 dias tem 1 evento temático (ex: "Semana do Eclipse" — fusões têm maior chance de mutação `CAOS`)
@@ -82,15 +96,33 @@ Isso dá direção sem tirar a surpresa — os genes ainda variam, e o resultado
 A progressão de longo prazo é sobre **a conta, não os heróis**.
 
 **Árvore de Legado da Conta**
-Ao aposentar heróis, o jogador acumula **Ecos** que desbloqueiam passivas permanentes:
+Ao criar Ecos (via Círculo de Transmutação → Criar Eco), o jogador acumula um **Score de Legado** ponderado por raridade. A métrica é uma soma ponderada dos Ecos únicos por raridade — duplicatas da mesma assinatura não contam:
+
+| Raridade do Eco | Peso |
+|---|---|
+| Comum | 1 pt |
+| Incomum | 3 pts |
+| Raro | 8 pts |
+| Épico | 20 pts |
+| Lendário | 50 pts |
+| Único | 150 pts |
 
 ```
-Tier 1 (10 Ecos)    → +5% de drop de fragmentos raros
-Tier 2 (25 Ecos)    → Fusões têm +3% de chance de mutação positiva
-Tier 3 (50 Ecos)    → Novo slot de herói na equipe de combate
-Tier 4 (100 Ecos)   → Acesso ao bioma "Vazio Fragmentado"
-Tier 5 (200 Ecos)   → Habilidade de "injetar" 1 gene de ancestral por semana
+Score de Legado = Σ (peso × 1 por Eco único de cada raridade)
+Exemplo: 10 Ecos Comuns + 5 Incomuns + 2 Raros = 10 + 15 + 16 = 41 pts
 ```
+
+Os tiers de Legado desbloqueiam passivas permanentes de conta:
+
+| Tier | Score necessário | Bônus |
+|---|---|---|
+| T1 | 10 pts | +5% de drop de fragmentos raros |
+| T2 | 40 pts | +3% de chance de mutação positiva em fusões |
+| T3 | 100 pts | Slot extra na equipe de combate |
+| T4 | 250 pts | Acesso ao bioma "Vazio Fragmentado" |
+| T5 | 600 pts | Injeção de gene ancestral 1× por semana |
+
+> **Nota:** este sistema de Score ponderado (definido em `docs/13_transmutacao.md` e implementado em `src/systems/genes/eco.ts`) substitui a contagem simples de Ecos descrita originalmente aqui. O Score incentiva diversidade de raridades e biomas, não apenas volume de aposentadorias.
 
 **Registro de Descobertas**
 - Cada habilidade emergente descoberta pela primeira vez é registrada com o nome do jogador

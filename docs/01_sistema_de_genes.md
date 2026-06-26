@@ -111,11 +111,13 @@ A raridade **não é atribuída no drop** — ela é **calculada** a partir do g
 | Tier | Condição de classificação |
 |---|---|
 | ⚪ Comum | Soma de genes < 300, sem mutações, sem híbridos |
-| 🟢 Incomum | Soma 300–450 ou 1 gene de mutação |
-| 🔵 Raro | Soma 450–600 ou afinidade híbrida |
-| 🟣 Épico | Soma 600–750 ou 2+ mutações |
+| 🟢 Incomum | Soma **≥ 300** (inclusive) até 449, ou 1+ gene de mutação |
+| 🔵 Raro | Soma ≥ 450 até 599, ou afinidade híbrida |
+| 🟣 Épico | Soma ≥ 600 até 749, ou 2+ mutações |
 | 🟠 Lendário | Soma > 750 ou gene `TRANSCENDÊNCIA` |
 | 🔴 Único | Condições especiais de evento + genoma excepcional |
+
+> **Nota de implementação (D60):** o boundary de Incomum é **≥ 300** (inclusivo), conforme implementado em `rarity.ts`. A constante `RARITY_THRESHOLDS.comum.maxSum: 300` em `constants.ts` define o máximo de Comum como 299 (exclusivo). Um herói com soma exatamente 300 é Incomum.
 
 > Isso significa que um fragmento comum pode se tornar a base de um lendário se fundido com sabedoria.
 

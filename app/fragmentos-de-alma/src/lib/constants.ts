@@ -86,6 +86,10 @@ export const STARTING_RESOURCES = {
   echoes: 0,
 } as const
 
+// ARTEFATO LEGADO — Ecos não são quantidades dropáveis no design atual.
+// Ecos são blueprints únicos criados via Círculo de Transmutação (doc 13).
+// Rendimentos reais: CRYSTAL_EXTRACTION_YIELD em src/systems/genes/eco.ts
+// Manter aqui apenas para não quebrar imports legados; não usar em código novo.
 export const ECHO_REWARDS = {
   comum: { min: 1, max: 2 },
   incomum: { min: 3, max: 5 },

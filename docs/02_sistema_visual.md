@@ -1,74 +1,91 @@
-# 🎨 Sistema de Geração Visual Procedural
-*Fragmentos de Alma — Design Document v0.1*
+# 🎨 Sistema Visual de Heróis
+*Fragmentos de Alma — Design Document v1.1*
+*Atualizado em: 2026-06-26 — migração para sprites pixel art (D49–D54)*
 
 ---
 
 ## Visão Geral
 
-O visual de cada entidade é **gerado diretamente a partir do seu genoma** — não existe arte pré-definida por personagem. O mesmo conjunto de fragmentos base pode gerar visuais radicalmente diferentes dependendo dos genes resultantes da fusão.
+O visual de cada herói é determinado pelo seu genoma, mas **não gerado em tempo de execução**. A identidade visual é composta por sprites pixel art pré-renderizados, selecionados deterministicamente a partir de três variáveis do genoma: **NÚCLEO** (classe de combate), **Build** (sub-variante por atributo dominante) e **Raridade** (tier visual). Cada combinação produz um sprite distinto.
 
-O objetivo é que o jogador olhe para um herói e consiga *ler* sua natureza apenas pela aparência.
+O objetivo permanece o mesmo: o jogador olha para um herói e lê sua natureza pela aparência em segundos.
 
 ---
 
 ## Arquitetura Visual
 
-O visual é composto por **6 camadas independentes**, cada uma controlada por genes específicos:
+### Sprites de Herói
+
+Cada herói tem um sprite pixel art (128×128px base, 8 direções) selecionado por:
 
 ```
-[ 6 ] Efeitos de Aura        ← controlado por AURA + AFINIDADE
-[ 5 ] Detalhes e Ornamentos   ← controlado por NÚCLEO + mutações
-[ 4 ] Padrões e Marcações     ← controlado por ORIGEM + VONTADE
-[ 3 ] Paleta de Cores         ← controlado por AFINIDADE + RESSONÂNCIA
-[ 2 ] Forma Base / Silhueta   ← controlado por NÚCLEO + RESISTÊNCIA
-[ 1 ] Fundo / Ambiente        ← controlado por ORIGEM
+NÚCLEO (5 classes) × BUILD (2 por classe) × RARIDADE (6 tiers) × DIREÇÃO (8)
+= 480 sprites de herói
 ```
 
-Cada camada é gerada proceduralmente e composta em tempo real.
+**Resolução:** sprites de heróis Únicos são 136×136px para acomodar detalhes extras; normalizados com `UNIQUE_SPRITE_INSET_RATIO = 0.10` na renderização para equalizar o tamanho visual entre tiers.
+
+### Registro de sprites
+
+O arquivo `src/systems/visual/spriteRegistry.ts` é um mapa estático auto-gerado de `require()` com literais estáticas, obrigatório pelo Metro bundler do React Native:
+
+```
+SPRITE_REGISTRY[nucleoId][buildId][raridade][direction] → require(path)
+```
+
+Resolução com fallback: se o sprite do tier exato não existir, `getHeroSpritePath()` busca o tier imediatamente inferior.
 
 ---
 
-## Camada 1 — Fundo / Ambiente
+## Builds por NÚCLEO
 
-Define o cenário que envolve o herói na tela de coleção/detalhe.
+Cada NÚCLEO tem **2 builds** (sub-variantes visuais), determinadas pelo atributo dominante do herói:
 
-| ORIGEM | Ambiente gerado |
+| NÚCLEO | Build A | Build B | Critério de seleção |
+|---|---|---|---|
+| Guardião | `guardiao` | `sentinela` | força > resistência → `guardiao`; resistência ≥ força → `sentinela` |
+| Destruidor | `reaver` | `fragmentador` | força > ressonância → `reaver`; ressonância ≥ força → `fragmentador` |
+| Arauto | `arauto` | `corneiro` | vontade > aura → `arauto`; aura ≥ vontade → `corneiro` |
+| Trickster | `cacador` | `vidente` | agilidade > ressonância → `cacador`; ressonância ≥ agilidade → `vidente` |
+| Invocador | `invocador` | `anciao` | ressonância > aura → `invocador`; aura ≥ ressonância → `anciao` |
+
+Isso garante que heróis com o mesmo NÚCLEO mas diferentes distribuições de atributos tenham visuais distintos, comunicando o papel dentro da classe.
+
+---
+
+## Backgrounds
+
+### Backgrounds de Batalha
+42 imagens em `assets/sprites/backgrounds/[raridade]/[territorio].png`:
+- 6 raridades × 7 territórios (axis, cinderfall, kethara, limiar, mnemos, venula, verdania)
+- Selecionados pela raridade do herói ativo + território do bioma atual
+- Registro: `BACKGROUND_REGISTRY[raridade][origem]` em `backgroundRegistry.ts`
+
+### Backgrounds de Origem
+Imagens por origem de herói em `assets/sprites/backgrounds/origens/[raridade]/[origem]/`:
+- 5 origens (Abissal, Celestial, Primordial, Forjada, Errante) × 6 raridades × variantes
+- Registro: `ORIGIN_BACKGROUND_REGISTRY` em `originBackgroundRegistry.ts`
+
+### Ícones de Elemento (Afinidade)
+8 ícones SVG/PNG em `assets/sprites/elements/[afinidade].png`, usados no strip inferior do HeroCard:
+
+| Afinidade | Símbolo alquímico |
 |---|---|
-| Abissal | Profundezas escuras, partículas que caem como cinzas |
-| Celestial | Nuvens luminosas, luz que emana de cima |
-| Primordial | Terra rachada, raízes antigas, neblina verde |
-| Forjada | Forja industrial, faíscas, metal fundido |
-| Errante | Céu vazio em movimento, estrelas em deriva |
-
-> Híbridos de ORIGEM geram ambientes mesclados — ex: Abissal+Celestial cria um abismo com luz fraca vindo do fundo.
-
----
-
-## Camada 2 — Silhueta Base
-
-A forma geral da entidade é determinada por **NÚCLEO** (arquétipo) e **RESISTÊNCIA** (massa/bulk).
-
-### Formas por NÚCLEO:
-- **Guardião** → silhueta larga, baixa, estável (centro de gravidade baixo)
-- **Destruidor** → silhueta alta, assimétrica, com extremidades afiadas
-- **Arauto** → silhueta fina, alongada, com proporções não-humanas
-- **Trickster** → silhueta fragmentada, múltiplos volumes menores ao redor do centro
-- **Invocador** → silhueta central pequena rodeada de formas orbitando
-
-### Modificador de RESISTÊNCIA:
-```
-RESISTÊNCIA 1–30   → silhueta leve, translúcida, com vazios
-RESISTÊNCIA 31–60  → silhueta sólida padrão
-RESISTÊNCIA 61–100 → silhueta densa, com volumes extras, bordas grossas
-```
+| Fogo | triângulo ▲ com linha horizontal no terço inferior |
+| Água | triângulo ▽ com linha horizontal no terço superior |
+| Terra | triângulo ▽ sem linha |
+| Vento | triângulo △ sem linha |
+| Vazio | círculo com ponto central e raios curtos |
+| Luz | sol geométrico de 8 pontas |
+| Sombra | lua crescente com estrela interna |
+| Éter | estrela de 6 pontas (dois triângulos sobrepostos) com círculo |
 
 ---
 
-## Camada 3 — Paleta de Cores
+## Paleta de Cores por Afinidade
 
-Gerada a partir de **AFINIDADE** (cor dominante) e **RESSONÂNCIA** (intensidade/saturação).
+Mantida para uso em auras, barras de Ultimate, bordas de raridade e efeitos de UI:
 
-### Cores base por AFINIDADE:
 | Afinidade | Cor Primária | Cor Secundária | Cor de Brilho |
 |---|---|---|---|
 | Fogo | #C0392B | #E67E22 | #FFEB3B |
@@ -80,123 +97,51 @@ Gerada a partir de **AFINIDADE** (cor dominante) e **RESSONÂNCIA** (intensidade
 | Sombra | #212121 | #4A148C | #9C27B0 |
 | Éter | #E8EAF6 | #5C6BC0 | #82B1FF |
 
-### Modificador de RESSONÂNCIA:
-```
-RESSONÂNCIA 1–30   → paleta dessaturada, quase monocromática
-RESSONÂNCIA 31–60  → paleta padrão
-RESSONÂNCIA 61–100 → paleta vibrante, alto contraste, brilho em camadas
-```
-
-### Afinidades Híbridas (geram paletas únicas):
-- Fogo + Sombra = **Cinza Ardente** → preto profundo com brasas internas
-- Água + Vento = **Tempestade** → azul turvo com relâmpagos brancos
-- Luz + Vazio = **Eclipse** → dourado com núcleo negro absorvente
-- Terra + Éter = **Fóssil Astral** → marrom terroso com veios luminescentes
-
----
-
-## Camada 4 — Padrões e Marcações
-
-Padrões que cobrem a silhueta — runas, escamas, veios, fissuras, tatuagens de alma.
-
-Determinados por **ORIGEM** (tipo de padrão) e **VONTADE** (densidade/complexidade).
-
-### Tipos de padrão por ORIGEM:
-- **Abissal** → espirais que se afunilam para dentro, geometria hipnótica
-- **Celestial** → constelações conectadas, linhas retas e angulares
-- **Primordial** → padrões orgânicos, veios como raízes ou veias
-- **Forjada** → marcas de solda, runas geométricas, linhas retas interrompidas
-- **Errante** → padrões incompletos, fragmentados, como algo apagado
-
-### Modificador de VONTADE:
-```
-VONTADE 1–30   → poucos padrões, simples, quase ausentes
-VONTADE 31–60  → cobertura média, padrão legível
-VONTADE 61–100 → cobertura densa, padrões em múltiplas camadas, detalhes micros
-```
-
----
-
-## Camada 5 — Detalhes e Ornamentos
-
-Elementos adicionais: armaduras, asas, chifres, cristais, correntes, chamas, folhas, etc.
-
-Determinados por **NÚCLEO** (categoria de ornamento) e genes de **MUTAÇÃO**.
-
-### Ornamentos base por NÚCLEO:
-- **Guardião** → escudos fragmentados ao redor do corpo, escamas, paredes de pedra
-- **Destruidor** → lâminas emergindo da silhueta, garras, espinhos
-- **Arauto** → véus, tecidos em movimento, tentáculos de energia
-- **Trickster** → múltiplos olhos, espelhos em órbita, cópias fantasma
-- **Invocador** → runas flutuantes, círculos mágicos, entidades menores orbitando
-
-### Ornamentos de Mutação:
-| Mutação | Ornamento adicionado |
-|---|---|
-| `INVERSO` | Uma fissura no centro do corpo revelando o interior oposto |
-| `ESPELHO` | Uma sombra ligeiramente deslocada que age independente |
-| `ANCESTRAL` | Marcas de um ancestral que brilham em frequências diferentes |
-| `CAOS` | Fragmentos do corpo que flutuam separados e se reúnem |
-| `TRANSCENDÊNCIA` | Halo estrutural ao redor de toda a silhueta |
-
----
-
-## Camada 6 — Efeitos de Aura
-
-Partículas, brilhos e animações ambientes que emanam da entidade.
-
-Determinados por **AURA** (intensidade) e **AFINIDADE** (tipo de partícula).
-
-```
-AURA 1–20    → sem efeito visível
-AURA 21–40   → leve halo estático na borda da silhueta
-AURA 41–60   → partículas lentas emanando do corpo
-AURA 61–80   → distorção ambiental ao redor (calor, ondas, névoa)
-AURA 81–100  → efeito de campo completo: o ambiente reage ao personagem
-```
-
 ---
 
 ## Geração de Nome
 
-O nome também é proceduralmente gerado a partir dos genes:
+O nome é gerado deterministicamente a partir do genoma via `generateName(genome, seed)` em `src/utils/nameGenerator.ts`.
 
-```
-Formato: [Prefixo de ORIGEM] + [Raiz de NÚCLEO] + [Sufixo de AFINIDADE]
-```
+**Formato:** uma única palavra composta — `[Prefixo de ORIGEM][Raiz de NÚCLEO][Sufixo de AFINIDADE]`
+
+- Sem espaços, sem apóstrofo, sem epítetos de mutação
+- Determinístico: a mesma seed + genoma produz sempre o mesmo nome
+- Implementado com `makeSeededRng(seed)` para reprodutibilidade
 
 ### Exemplos:
-- Abissal + Destruidor + Vazio = **"Neth'kara Vex"**
-- Celestial + Arauto + Luz = **"Lyra Sol'aen"**
-- Primordial + Guardião + Terra = **"Korum Durath"**
-- Forjada + Invocador + Éter = **"Vel'sira Aethun"**
+- Abissal + Destruidor + Vazio = **"Nethdurakvar"**
+- Celestial + Arauto + Luz = **"Lyrasolven"**
+- Primordial + Guardião + Terra = **"Korumdurath"**
+- Forjada + Invocador + Éter = **"Velsiraethun"**
 
-Mutações adicionam epítetos:
-- `TRANSCENDÊNCIA` → "O Eterno", "A Sem-Fim"
-- `CAOS` → "O Partido", "A Fraturada"
-- `ANCESTRAL` → "Portador(a) de [nome do ancestral]"
+> **Nota (D54):** epítetos de mutação ("O Partido", "A Sem-Fim") e o parâmetro `ancestorName` foram removidos no redesenho de nomes. Nomes curtos ficam mais legíveis no strip de 26px do HeroCard e são mais memoráveis. Mutações são comunicadas visualmente pelo sprite e pelo detalhe do herói, não pelo nome.
 
 ---
 
-## Identidade Visual Única: o Protocolo de Unicidade
+## VisualParams Procedurais (uso interno)
 
-Para garantir que dois jogadores nunca tenham o mesmo herói visual:
+O sistema `src/systems/visual/generator.ts` ainda gera `VisualParams` proceduralmente a partir do genoma — usado em contextos onde um sprite completo não está disponível (preview de fusão, fallback em biomas futuros). Não é a fonte primária de identidade visual do MVP.
 
-1. **Seed única por fusão**: cada fusão gera uma seed baseada em timestamp + IDs dos pais
-2. **Micro-variações de cor**: ±3% de variação em matiz para cada gene de atributo
-3. **Posicionamento de ornamentos**: coordenadas geradas pela seed, não fixas
-4. **Velocidade de animação**: variação sutil nas partículas de aura
+---
 
-> Um herói com genes idênticos a outro ainda terá diferenças visíveis ao olho — como gêmeos, não como cópias.
+## Identidade Visual Única
+
+Dois heróis nunca terão a mesma combinação de:
+- Nome (seed baseada em timestamp + IDs dos pais)
+- Genoma (herança com drift aleatório — ver doc 01)
+- Build visual (atributo dominante pode diferir mesmo no mesmo NÚCLEO)
+- Raridade (calculada pelo genoma — ver doc 01)
+
+> Um herói Guardião Lendário nunca é igual a outro Guardião Lendário: builds diferentes, stats distintos, habilidades procedurais próprias.
 
 ---
 
 ## Notas de Design
 
-- Priorizar **legibilidade** sobre complexidade: o visual deve comunicar o papel do herói em 3 segundos
-- A tela de fusão deve **pré-visualizar** o resultado com animação de "revelação"
-- Heróis raros devem ter visuais que se destaquem imediatamente na galeria
-- Considerar acessibilidade: não depender só de cor para comunicar informação
+- Sprites pixel art mantêm a regra de legibilidade: o NÚCLEO e a raridade são identificáveis em miniatura (card 3 colunas, ~110px de largura)
+- A tela de transmutação pré-visualiza os genes e a probabilidade de raridade antes de confirmar — o sprite final só é revelado após a operação
+- Heróis de tier Único têm sprites com detalhes extras (136×136px) que os destacam imediatamente na grade
 
 ---
-*Próxima revisão: definir pipeline técnico de composição de camadas + especificações de animação*
+*Versão 1.1 — atualizado em 2026-06-26. Decisões de implementação relevantes: D49, D50, D51, D52, D53, D54 em docs/09_roadmap_mvp.md*

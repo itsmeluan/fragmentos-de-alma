@@ -94,65 +94,47 @@ SOMBRA              #212121 / #4A148C / #9C27B0
 
 ## 3. Tipografia
 
-### Hierarquia de Fontes
+> **Nota (D59):** em 2026-06-26 todas as fontes foram consolidadas em **Rajdhani** para uniformidade visual com o estilo pixel art dos sprites. Cinzel e Libre Baskerville foram removidas do tema ativo. A razão: o estilo pixel art cria uma linguagem visual coesa que funciona melhor com uma fonte geométrica e condensada em todos os contextos.
 
-**Fonte de Título — "Cinzel Decorative"**
-*(disponível no Google Fonts, gratuita)*
-```
-Uso: nomes de heróis, títulos de tela, nomes de habilidades lendárias
-Peso: Regular e Bold
-Características: serifada, romana, peso clássico com personalidade
-Sensação: grimório, inscrição em pedra, permanência
-```
-
-**Fonte de UI — "Rajdhani"**
-*(disponível no Google Fonts, gratuita)*
-```
-Uso: números de stats, labels de interface, botões, cooldowns, HP
-Peso: Medium (500) e SemiBold (600)
-Características: geométrica, condensada, técnica
-Sensação: painel de controle, dados em tempo real, urgência
-```
-
-**Fonte de Corpo — "Libre Baskerville"**
-*(disponível no Google Fonts, gratuita)*
-```
-Uso: descrições de habilidades, lore, diálogos, tooltips
-Peso: Regular e Italic
-Características: serifada clássica, legível em tamanhos pequenos
-Sensação: livro antigo, conhecimento, narrativa
-```
-
-### Tamanhos e Uso
+### Fonte Única — "Rajdhani"
+*(disponível no Google Fonts, gratuita — pacote `@expo-google-fonts/rajdhani`)*
 
 ```
-// Títulos de tela
-fontSize: 28, fontFamily: 'Cinzel-Bold', letterSpacing: 2, color: DOURADO_QUEIMADO
-
-// Nome de herói (card)
-fontSize: 18, fontFamily: 'Cinzel-Regular', letterSpacing: 1, color: BRANCO_PERGAMINHO
-
-// Stats e números
-fontSize: 16, fontFamily: 'Rajdhani-SemiBold', letterSpacing: 0.5, color: BRANCO_PERGAMINHO
-
-// Labels de UI
-fontSize: 12, fontFamily: 'Rajdhani-Medium', letterSpacing: 1.5,
-color: CINZA_MEDIO, textTransform: 'uppercase'
-
-// Corpo de texto / lore
-fontSize: 14, fontFamily: 'LibreBaskerville-Regular', lineHeight: 22, color: BRANCO_PERGAMINHO
-
-// Texto de raridade
-fontSize: 11, fontFamily: 'Rajdhani-SemiBold', letterSpacing: 2,
-textTransform: 'uppercase', color: [cor da raridade]
+Pesos usados: 500Medium / 600SemiBold / 700Bold
+Características: geométrica, condensada, técnica, boa legibilidade em telas pequenas
+Sensação: dados em tempo real, urgência, clareza
 ```
+
+### Hierarquia Tipográfica Atual
+
+| Uso | Peso | Tamanho | letterSpacing | Cor |
+|---|---|---|---|---|
+| Títulos de tela | `Rajdhani_700Bold` | 22–28px | 3 | DOURADO_QUEIMADO |
+| Nome de herói (card) | `Rajdhani_600SemiBold` | 18px | 1 | BRANCO_PERGAMINHO |
+| Stats e números | `Rajdhani_600SemiBold` | 16px | 0.5 | BRANCO_PERGAMINHO |
+| Labels de UI | `Rajdhani_500Medium` | 12px | 1.5, uppercase | CINZA_MÉDIO |
+| Corpo de texto / lore | `Rajdhani_500Medium` | 14px, lh 22 | — | BRANCO_PERGAMINHO |
+| Botões de ação | `Rajdhani_700Bold` | 13px | 2, uppercase | fundo escuro |
+| Texto de raridade | `Rajdhani_600SemiBold` | 11px | 2, uppercase | cor da raridade |
 
 ### Regras de Tipografia
-- Letter spacing generoso em labels e raridades — cria ritmo visual
-- Títulos em Cinzel nunca em caixa baixa — sempre Title Case ou UPPER CASE
-- Números de dano/cura em Rajdhani Bold, tamanho grande — devem ser lidos instantaneamente
-- Texto de lore sempre em Libre Baskerville — cria separação clara entre "jogo" e "mundo"
-- Nunca misturar mais de 2 fontes na mesma tela
+- `fontWeight: '700'` **não funciona** com fontes customizadas no React Native — especificar sempre `fontFamily: 'Rajdhani_700Bold'` explicitamente
+- Títulos de tela sempre em UPPER CASE com `letterSpacing: 3`
+- Números de dano/cura em `Rajdhani_700Bold`, tamanho grande — lidos instantaneamente
+- Nunca misturar famílias de fonte — toda a UI usa Rajdhani
+- Não existe variante itálica em Rajdhani; para contextos narrativos, usar `Rajdhani_500Medium` com cor ligeiramente mais clara
+
+```typescript
+// theme.ts — valores atuais (fonte de verdade)
+typography: {
+  title:     { fontFamily: 'Rajdhani_700Bold',    fontSize: 28, letterSpacing: 3   },
+  heroName:  { fontFamily: 'Rajdhani_600SemiBold', fontSize: 18, letterSpacing: 1  },
+  stat:      { fontFamily: 'Rajdhani_600SemiBold', fontSize: 16, letterSpacing: 0.5 },
+  label:     { fontFamily: 'Rajdhani_500Medium',   fontSize: 12, letterSpacing: 1.5, textTransform: 'uppercase' },
+  body:      { fontFamily: 'Rajdhani_500Medium',   fontSize: 14, lineHeight: 22    },
+  bodyItalic:{ fontFamily: 'Rajdhani_500Medium',   fontSize: 14, lineHeight: 22    }, // sem itálico real
+}
+```
 
 ---
 
@@ -169,16 +151,25 @@ Persona 5 usa recortes de jornal, ângulos agudos e elementos que "invadem" o es
 
 ### Elementos de Interface
 
-**Cards de Herói**
+**Cards de Herói (D49–D51)**
 ```
-- Fundo: FUNDO_SECUNDÁRIO com borda de 1px na cor da raridade
-- Cantos: ligeiramente cortados em diagonal (não arredondados — ângulos têm peso)
-  borderRadius: 0, com clip path diagonal nos cantos superiores
-- Borda de raridade: gradiente sutil da cor de raridade, mais intensa no topo
-- Nome: Cinzel, alinhado à esquerda, com linha dourada abaixo
-- Stats: grid de ícones + números em Rajdhani
-- Elemento alquímico: símbolo da afinidade no canto superior direito, 32x32px
+Layout: formato retrato, 3 colunas na grade
+Largura: Math.floor((screenWidth - 32) / 3) — fixo por prop, sem stretch
+
+Estrutura de camadas (de baixo para cima):
+  1. Wrapper externo: sombra roxa (#2a0d60), sem overflow:hidden (compatibilidade iOS)
+  2. Pressable interno: overflow:hidden, fundo preto (#09080f)
+  3. HeroSprite (Canvas Skia): arte pixel art, largura total, inset horizontal 5px
+     - Sprite Único com UNIQUE_SPRITE_INSET_RATIO = 0.10 (80% da área)
+  4. Strip superior (26px, absolute top:0): nome + nível em Rajdhani_700Bold/500Medium
+  5. Strip inferior (42px, absolute bottom:0): ícone afinidade + Classe·Origem + estrelas
+
+Fundo: preto profundo (#09080f) — sem borda de raridade colorida
+A raridade é comunicada pelo sprite (detalhes extras nos tiers altos) e pelas estrelas
+BorderRadius: 2 nos cantos — mínimo para não parecer recortado pixelado
 ```
+
+> **Nota:** o design original especificava 2 colunas com cantos diagonais (clip path). O redesenho para 3 colunas portrait foi adotado para acomodar sprites pixel art e melhorar a densidade da grade em telas móveis (D49–D51).
 
 **Botões**
 ```
@@ -366,31 +357,49 @@ ELEMENTOS FIXOS:
 - Canto superior direito: recursos (Fragmentos 🔷, Cristais 💎, Ecos ✨)
 - Barra inferior: navegação principal (5 ícones)
 
+NAVEGAÇÃO INFERIOR (D57):
+  Mapa | Heróis | Ecos | Círculo | Kael
+  ícones: mapa / almas / diamante-facetado / fundir / kael
+  (substituiu: Mapa | Coleção | Fusão | Kael | Mais)
+
 ATMOSFERA:
 - Névoa nos cantos do mapa que se dissipa conforme o jogador explora
 - Partículas de Prima flutuando no fundo, muito sutis
 - Animação idle: regiões pulsam levemente em seu ritmo próprio
 ```
 
-### Tela de Coleção (Galeria de Heróis)
+### Tela de Heróis e Tela de Ecos (D55–D57)
+
+> **Nota:** a "Tela de Coleção" original foi dividida em duas tabs separadas.
 
 ```
-CONCEITO: grimório vivo — como folhear um livro de almas
+TELA DE HERÓIS (heroes.tsx):
+CONCEITO: grimório vivo — grade densa de almas vinculadas
 
 GRID:
-- 2 colunas em telas até 390px, 3 colunas acima
-- Cards com proporção 3:4 (retrato)
-- Fundo do card: FUNDO_SECUNDÁRIO com textura muito sutil de papel
-- Borda: 1px na cor de raridade, cantos cortados em diagonal
+- 3 colunas fixas em todas as telas
+- Cards retrato com largura = Math.floor((screenWidth - 32) / 3)
+- Fundo de card: preto profundo (#09080f) com sombra roxa sutil
+- Sem bordas de raridade coloridas — raridade comunicada pelo sprite
 
-ORDENAÇÃO:
-- Default: raridade decrescente, depois nível decrescente
-- Filtros: por AFINIDADE, ORIGEM, NÚCLEO, raridade (chips horizontais no topo)
-- Chips de filtro: estilo de "selos" — borda fina, texto Rajdhani uppercase
+ORDENAÇÃO (dropdown sem container):
+- Texto "ordenar por [critério]" no header — toque abre dropdown
+- Overlay rgba(0,0,0,0.84) cobre tela abaixo do header
+- Header nunca escurecido — posicionamento por onLayout
+- Opções: Raridade / Nível / Afinidade / Classe
+- Opção ativa: Rajdhani_700Bold + dourado; inativas: Rajdhani_500Medium + secundária
 
 HEADER:
-- Título "ALMAS VINCULADAS" em Cinzel com ornamento central
-- Contador: "47 / ∞" em Rajdhani (quantas almas, máximo não revelado ainda)
+- Título "HERÓIS" em Rajdhani_700Bold + DOURADO_QUEIMADO, letterSpacing: 3
+- Contador: "N almas" em Rajdhani_500Medium
+
+BOTÃO FLUTUANTE "TIME":
+- Pílula dourada, position: absolute, right: 20, bottom: 20
+- Abre RosterManager (seleção de time + banco)
+
+TELA DE ECOS (ecos.tsx):
+- Lista de EcoRow com borda esquerda colorida por raridade
+- Toque abre EcoDetail em modal (campo "Classe" — não "Núcleo")
 ```
 
 ### Tela de Fusão
@@ -669,32 +678,38 @@ export const theme = {
 
   typography: {
     title: {
-      fontFamily: 'Cinzel-Bold',
+      fontFamily: 'Rajdhani_700Bold',   // ← era 'Cinzel-Bold' (D59)
       fontSize: 28,
-      letterSpacing: 2,
+      letterSpacing: 3,
       color: '#C8960C',
     },
     heroName: {
-      fontFamily: 'Cinzel-Regular',
+      fontFamily: 'Rajdhani_600SemiBold', // ← era 'Cinzel-Regular'
       fontSize: 18,
       letterSpacing: 1,
       color: '#E8E0D0',
     },
     stat: {
-      fontFamily: 'Rajdhani-SemiBold',
+      fontFamily: 'Rajdhani_600SemiBold',
       fontSize: 16,
       letterSpacing: 0.5,
       color: '#E8E0D0',
     },
     label: {
-      fontFamily: 'Rajdhani-Medium',
+      fontFamily: 'Rajdhani_500Medium',
       fontSize: 12,
       letterSpacing: 1.5,
       textTransform: 'uppercase' as const,
       color: '#8A8A9A',
     },
     body: {
-      fontFamily: 'LibreBaskerville-Regular',
+      fontFamily: 'Rajdhani_500Medium',  // ← era 'LibreBaskerville-Regular'
+      fontSize: 14,
+      lineHeight: 22,
+      color: '#E8E0D0',
+    },
+    bodyItalic: {
+      fontFamily: 'Rajdhani_500Medium',  // sem variante itálica no Rajdhani
       fontSize: 14,
       lineHeight: 22,
       color: '#E8E0D0',
@@ -748,12 +763,15 @@ import { theme } from '@/lib/theme'
 Antes de entregar qualquer componente visual, verificar:
 
 - [ ] Fundo é escuro? (nunca branco ou cinza claro como fundo principal)
-- [ ] Texto usa Branco Pergaminho (#E8E0D0), não branco puro?
-- [ ] Fonte de título é Cinzel? Fonte de UI é Rajdhani? Corpo é Libre Baskerville?
+- [ ] Texto usa Branco Pergaminho (#E8E0D0), não branco puro (#FFFFFF)?
+- [ ] **Toda fonte usa Rajdhani** (`_700Bold` / `_600SemiBold` / `_500Medium`)? Cinzel e Libre Baskerville foram removidas do tema.
+- [ ] `fontWeight: '700'` foi evitado? Usar `fontFamily: 'Rajdhani_700Bold'` explicitamente.
 - [ ] Elementos interativos têm área de toque mínima de 48x48dp?
 - [ ] Cores de raridade são as definidas neste documento?
 - [ ] Animações usam easing (não linear)?
-- [ ] Bordas de cards têm cantos angulares (borderRadius 0-2), não arredondados?
+- [ ] Cards de herói usam HeroCard (3 colunas, portrait, Skia)? Nunca criar cards ad hoc.
+- [ ] Shadow em card de herói está no wrapper externo (sem overflow:hidden), clip no Pressable interno?
+- [ ] Bordas com cantos angulares (borderRadius 0-2)?
 - [ ] Há espaço negativo suficiente? A tela respira?
 - [ ] O elemento mais importante da tela é visualmente o mais proeminente?
 - [ ] Testou com uma mão, com o polegar direito?

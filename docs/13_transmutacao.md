@@ -190,18 +190,20 @@ Kael adiciona chance de +1 tier baseada no tier de Legado atual:
 
 ## Catálogo de Habilidades por Tier
 
-Cada herói possui slots de habilidades fixos por raridade:
+> **Tabela canônica em `doc 03`, seção "Número de Habilidades por Entidade".** A tabela abaixo está sincronizada com o código (`src/systems/skills/generator.ts`):
 
-| Raridade | Ativas | Passivas | Únicas | Emergentes |
-|---|---|---|---|---|
-| Comum | 1 | 0 | 0 | 0 |
-| Incomum | 2 | 0 | 0 | 0 |
-| Raro | 3 | 1 | 0 | 0 |
-| Épico | 4 | 2 | 1 | 0 |
-| Lendário | 5 | 3 | 2 | 0–1 |
-| Único+ | 5 | 3 | 3 | 1+ |
+| Raridade | Ativas | Passivas | Únicas |
+|---|---|---|---|
+| Comum | 1 | 1 | — |
+| Incomum | 1 | 1 | — |
+| Raro | 2 | 1 | — |
+| Épico | 2 | 2 | — |
+| Lendário | 2 | 2 | 1 |
+| Único | 3 | 2 | 2 |
 
 Quando um filho nasce com tier acima do esperado (via catalisador), ele ganha os slots adicionais do tier superior — os 30% de skills novas preenchem os slots extras.
+
+> **Nota:** a tabela original neste doc (até 5 ativas / 3 passivas / 3 únicas para Único) estava divergindo de doc 03 e do código implementado. Esta versão está alinhada com a fonte de verdade.
 
 ---
 
