@@ -27,10 +27,9 @@ describe('resolveHeroSprite', () => {
     expect(r.source).not.toBeNull()
   })
 
-  it('faz fallback de tier ausente para comum', () => {
-    // incomum ainda não foi gerado → cai para comum
+  it('resolve incomum sem fallback quando sprite existe', () => {
     const r = resolveHeroSprite('Guardião', 'incomum', baseAttrs, 'south')
-    expect(r.tier).toBe('comum')
+    expect(r.tier).toBe('incomum')
     expect(r.source).not.toBeNull()
   })
 
@@ -40,10 +39,10 @@ describe('resolveHeroSprite', () => {
     expect(r.source).not.toBeNull()
   })
 
-  it('build sem lendário (reaver) faz fallback para comum', () => {
+  it('resolve lendário do build reaver sem fallback', () => {
     const r = resolveHeroSprite('Destruidor', 'lendario', { ...baseAttrs, agilidade: 95 }, 'south')
     expect(r.build).toBe('reaver')
-    expect(r.tier).toBe('comum') // reaver só tem comum por enquanto
+    expect(r.tier).toBe('lendario')
     expect(r.source).not.toBeNull()
   })
 
