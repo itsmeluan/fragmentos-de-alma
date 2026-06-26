@@ -730,14 +730,20 @@ Reestruturação completa da aba de coleção e padronização visual de todo o 
 
 ## Próximo Passo
 
-**Não há um passo funcional pendente definido.** O app está com todos os sistemas implementados (Passos 1–25) e polido visualmente. Próximas opções:
+**Fechamento de design — revisar e consolidar toda a documentação antes de avançar.**
 
-1. **Passo 26 — Conflito de Facções (PvP assíncrono):** ver `docs/12_endgame.md`
-2. **Polimento adicional de batalha:** sprites na tela de batalha, animações de skill
-3. **Ajustes de balanceamento:** dungeons, curvas de progressão, economia
-4. **Testes em dispositivo:** verificar fluxos completos no iPhone real
+Antes de implementar qualquer funcionalidade nova, o usuário quer garantir que os documentos de design estejam 100% sincronizados com o que foi implementado: sem decisões não-documentadas, sem gaps entre o design original e o estado atual do app, sem ambiguidades abertas.
 
-⚠️ Aguardando decisão do usuário antes de avançar.
+**O que fazer nessa fase:**
+1. Ler cada doc de design (01–13) e comparar com a implementação real
+2. Identificar divergências: comportamento mudado, feature não-implementada, decisão tomada diferente do especificado
+3. Atualizar os docs para refletir o estado atual (não o design original)
+4. Registrar no log de decisões (D60+) qualquer divergência encontrada
+5. Só então avançar para novo passo funcional
+
+**Contexto:** todo o sistema foi implementado do Passo 1 ao Passo 25 (Torres de Ressonância). Muitas decisões de implementação foram tomadas ao longo do caminho que podem não estar refletidas nos docs de design (01–13). Essa revisão fecha essa dívida antes de entrar no endgame.
+
+⚠️ Confirme quando quiser iniciar a revisão de design.
 
 ---
 
