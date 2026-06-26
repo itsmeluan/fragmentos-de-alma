@@ -3,6 +3,7 @@
 import type { Skill } from './types'
 import type { Combatant, BattleState, BattleEvent, StatusEffect } from '../battle/types'
 import { isEnemySlot, isActiveSlot } from '../battle/types'
+import { affinityMultiplier, affinityEffectiveness } from '../battle/affinityChart'
 
 export interface ResolutionContext {
   actor: Combatant
@@ -154,19 +155,29 @@ function resolveEffect(
   const attrs = actor.genome.attributes
 
   for (const target of targets) {
+    const affinMult = affinityMultiplier(actor.genome.essence.affinity, target.genome.essence.affinity)
+    const affinSuffix = (() => {
+      const e = affinityEffectiveness(affinMult)
+      if (e === 'super_efetivo') return ' — Super Efetivo!'
+      if (e === 'efetivo') return ' — Efetivo!'
+      if (e === 'muito_fraco') return ' — Muito Fraco...'
+      if (e === 'fraco') return ' — Fraco...'
+      return ''
+    })()
+
     switch (skill.effect.id) {
       case 'E01': {  // Dano físico
-        const dmg = Math.round(
-          calcDamage(scaledPower, attrs.forca, target.genome.attributes.resistencia, posMult, target.isDefending) * crit
-        )
-        events.push({ type: 'damage', actorId: actor.id, targetId: target.id, value: dmg, skillId: skill.id, label: `${actor.name} causa ${dmg} de dano físico em ${target.name}` })
+        const dmg = Math.max(1, Math.round(
+          calcDamage(scaledPower, attrs.forca, target.genome.attributes.resistencia, posMult, target.isDefending) * crit * affinMult
+        ))
+        events.push({ type: 'damage', actorId: actor.id, targetId: target.id, value: dmg, skillId: skill.id, label: `${actor.name} causa ${dmg} de dano físico em ${target.name}${affinSuffix}` })
         break
       }
       case 'E02': {  // Dano elemental
-        const dmg = Math.round(
-          calcDamage(scaledPower, attrs.ressonancia, target.genome.attributes.resistencia, posMult, target.isDefending) * crit
-        )
-        events.push({ type: 'damage', actorId: actor.id, targetId: target.id, value: dmg, skillId: skill.id, label: `${actor.name} causa ${dmg} de dano elemental em ${target.name}` })
+        const dmg = Math.max(1, Math.round(
+          calcDamage(scaledPower, attrs.ressonancia, target.genome.attributes.resistencia, posMult, target.isDefending) * crit * affinMult
+        ))
+        events.push({ type: 'damage', actorId: actor.id, targetId: target.id, value: dmg, skillId: skill.id, label: `${actor.name} causa ${dmg} de dano elemental em ${target.name}${affinSuffix}` })
         break
       }
       case 'E03': {  // Cura
@@ -201,8 +212,8 @@ function resolveEffect(
         break
       }
       case 'E08': {  // Drena recurso
-        const drain = Math.round(scaledPower * (attrs.vontade / 50))
-        events.push({ type: 'damage', actorId: actor.id, targetId: target.id, value: drain, skillId: skill.id, label: `${actor.name} drena ${drain} de ${target.name}` })
+        const drain = Math.max(1, Math.round(scaledPower * (attrs.vontade / 50) * affinMult))
+        events.push({ type: 'damage', actorId: actor.id, targetId: target.id, value: drain, skillId: skill.id, label: `${actor.name} drena ${drain} de ${target.name}${affinSuffix}` })
         break
       }
       case 'E09': {  // Reposiciona (efeito de debuff de posição, simplificado)
@@ -219,8 +230,9 @@ function resolveEffect(
   // M05: ignora defesa → remove metade do bloqueio de defending (a fórmula já calculou, mas marcamos)
   // M06: efeito secundário elemental — dano extra de afinidade
   if (skill.modifier?.id === 'M06' && targets.length > 0) {
-    const secondary = Math.round(scaledPower * 0.3)
     for (const target of targets) {
+      const m = affinityMultiplier(actor.genome.essence.affinity, target.genome.essence.affinity)
+      const secondary = Math.max(1, Math.round(scaledPower * 0.3 * m))
       events.push({ type: 'damage', actorId: actor.id, targetId: target.id, value: secondary, skillId: skill.id, label: `Efeito elemental secundário: ${secondary}` })
     }
   }

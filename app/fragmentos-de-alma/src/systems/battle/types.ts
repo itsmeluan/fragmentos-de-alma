@@ -61,6 +61,12 @@ export interface Combatant {
   lastSkillId?: string
   // geração — para C08
   generation: number
+  // bond acumulado (espelha Hero.bond para verificação de Ressonância Crítica)
+  bond: number
+
+  // Ressonância Crítica: turnos restantes de estado Exausta (0 = livre)
+  resonanceExaustaRemaining: number
+
   // apenas inimigos (preenchido por createBattle)
   aiPattern?: 'aggressive' | 'defensive' | 'support' | 'random'
 
@@ -103,7 +109,8 @@ export interface BossSpec extends EnemySpec {
 // ─── Ações ───────────────────────────────────────────────────────────────────
 
 // boss_charge: anuncio com 1 turno de antecedência; boss_unique: disparo da habilidade única
-export type ActionType = 'skill' | 'ultimate' | 'defend' | 'swap' | 'boss_charge' | 'boss_unique'
+// resonance: Ressonância Crítica entre dois heróis ativos sinérgicos
+export type ActionType = 'skill' | 'ultimate' | 'defend' | 'swap' | 'boss_charge' | 'boss_unique' | 'resonance'
 
 export interface BattleAction {
   type: ActionType
@@ -111,6 +118,7 @@ export interface BattleAction {
   targetId?: string      // para habilidades direcionadas
   skillId?: string       // qual habilidade usar (skill/ultimate)
   swapInId?: string      // quem entra (para swap)
+  partnerId?: string     // segundo herói da Ressonância Crítica
 }
 
 // ─── Eventos (feed para UI e log) ────────────────────────────────────────────
@@ -136,6 +144,8 @@ export type EventType =
   | 'boss_phase_change'
   | 'boss_unique_charging'
   | 'boss_unique_fire'
+  | 'resonance_used'
+  | 'resonance_exausta'
 
 export interface BattleEvent {
   type: EventType

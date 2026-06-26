@@ -239,4 +239,107 @@ As sinergias definidas nos genes (ver documento 01) se manifestam visivelmente e
 - Considerar modo de acessibilidade: substituir roda por lista vertical de ações
 
 ---
+
+## Vantagens e Fraquezas de Afinidade (D63)
+
+Implementado em `src/systems/battle/affinityChart.ts`. Todo dano causado (físico E01, elemental E02, drain E08) é multiplicado pelo multiplicador da afinidade do atacante vs. defensor.
+
+### Multiplicadores
+
+| Notação | Multiplicador | Descrição |
+|---|---|---|
+| ↑↑ | ×2.0 | Vantagem clara — unidirecional |
+| ↓↓ | ×0.5 | Desvantagem clara — unidirecional |
+| ↑↓ | ×1.5 (simétrico) | Par volátil — ambos amplificam mutuamente |
+| ↑↑↓↓ | ×2.0 (simétrico) | Par caos — ambos amplificam fortemente |
+| — | ×1.0 | Neutro |
+
+### Tabela de Matchups (linha = atacante, coluna = defensor)
+
+|        | Água | Éter | Fogo | Luz  | Sombra | Terra | Vazio | Vento |
+|--------|------|------|------|------|--------|-------|-------|-------|
+| Água   | —    | —    | ↑↑   | —    | ↑↓     | ↓↓    | —     | —     |
+| Éter   | —    | —    | —    | —    | ↑↓     | —     | ↑↑↓↓  | —     |
+| Fogo   | ↓↓   | —    | —    | —    | —      | —     | —     | ↑↑    |
+| Luz    | —    | —    | —    | —    | ↑↑↓↓   | —     | ↑↓    | —     |
+| Sombra | ↑↓   | ↑↓   | —    | ↑↑↓↓ | —      | —     | ↑↓    | —     |
+| Terra  | ↑↑   | —    | —    | —    | —      | —     | —     | ↓↓    |
+| Vazio  | —    | ↑↑↓↓ | ↓↓  | ↑↓   | ↑↓     | ↑↑    | —     | —     |
+| Vento  | —    | —    | —    | ↓↓   | —      | ↑↑    | —     | —     |
+
+**Ciclo clássico** (unidirecional): água → fogo → vento → terra → água  
+**Pares caos** (×2, simétrico): luz ↔ sombra, éter ↔ vazio  
+**Pares voláteis** (×1.5, simétrico): água ↔ sombra, éter ↔ sombra, luz ↔ vazio, sombra ↔ vazio
+
+### Labels de efetividade (no log de batalha)
+
+- ×2.0 → "Super Efetivo!"
+- ×1.5 → "Efetivo!"
+- ×0.5 → "Muito Fraco..."
+- ×1.0 → (sem label)
+
+---
+
+## Ressonância Crítica (D64)
+
+Implementado em `src/systems/battle/resonance.ts`. Quando dois heróis com afinidades sinérgicas estão no campo ativo e ambos têm o ultimate carregado a 100%, o jogador pode ativar um **ultimate em dupla** chamado Ressonância Crítica.
+
+### Pré-requisitos de ativação
+
+Todos os quatro devem ser atendidos simultaneamente:
+
+| Condição | Detalhe |
+|---|---|
+| Ambos no campo ativo | slots `front`, `center` ou `back` |
+| Ambos vivos | `isAlive: true` |
+| Raridade ≥ Raro | índice ≥ 2 na hierarquia `comum → incomum → raro → épico → lendário → único` |
+| Vínculo ≥ 3★ | `bond ≥ 50` (heroBondStars) |
+| Ultimate 100% | `ultimateCharge === 100` para ambos |
+| Afinidades sinérgicas | par presente na tabela abaixo |
+| Nenhum em Exausta | `resonanceExaustaRemaining === 0` para ambos |
+
+### Pares sinérgicos
+
+| Tipo | Par | Nome da Ressonância | Efeito resumido |
+|---|---|---|---|
+| DANO | Água + Terra | Dilúvio Pétreo | Dano elemental em área + redução de agilidade (2 turnos) |
+| DANO | Éter + Vazio | Colapso Dimensional | Dano massivo em alvo único + drena ultimate |
+| DANO | Fogo + Vento | Tempestade Ardente | Dano em área + queimadura DoT (2 turnos) |
+| DANO | Luz + Sombra | Colisão Primordial | Dano em área que ignora escudos e defesa |
+| SUPORTE | Água + Vazio | Fluxo Primordial | +30% força e resistência para todos os aliados (3 turnos) |
+| SUPORTE | Éter + Fogo | Chama Alquímica | Todos os aliados ganham 25 de carga de ultimate |
+| SUPORTE | Luz + Terra | Raízes de Luz | Escudo de 25% do HP máximo para todos os aliados ativos |
+| SUPORTE | Sombra + Vento | Véu Sombrio | Reduz agilidade e ressonância dos inimigos em 25% (2 turnos) |
+| CURA | Água + Vento | Chuva Sagrada | Cura todos os aliados em 35% do HP máximo |
+| CURA | Éter + Luz | Toque Etéreo | Remove todos os debuffs + cura 20% do HP máximo |
+| CURA | Fogo + Sombra | Chama da Redenção | Cura 25% do HP máximo + regeneração por 1 turno |
+| CURA | Terra + Vazio | Ancoragem Vital | Cura 30% do HP máximo + escudo de 15% do HP máximo |
+
+> A tabela é simétrica: Água+Terra e Terra+Água ativam a mesma Ressonância.
+
+### Variantes
+
+O efeito da Ressonância é modulado pelo atributo dominante médio dos dois heróis:
+
+| Variante | Atributo dominante | Modificador |
+|---|---|---|
+| **Bruta** | Força ou resistência | ×1.3 em dano; +resistência em buffs |
+| **Elemental** | Ressonância ou aura | ×1.3 em suporte/cura; ×1.1 em dano |
+| **Ágil** | Agilidade ou vontade | ×1.2 em suporte/cura; base em dano |
+
+### Forma Exaltada
+
+Se qualquer um dos dois heróis possui genes de mutação (`mutations.length > 0`), o efeito é multiplicado por **×1.5** em toda a Ressonância.
+
+### Estado Ressonância Exausta
+
+Após ativação, ambos os heróis entram em **Ressonância Exausta**:
+- Não podem agir durante **1 turno** (turno é consumido)
+- Ultimate bloqueada por **2 turnos** (`resonanceExaustaRemaining` decrementado em `startTurn`)
+
+### Múltiplos pares
+
+Não há limite para a quantidade de pares sinérgicos em um mesmo time. Um time de 6 heróis onde todos têm sinergia entre si é válido. A condição é sempre que **ambos do par específico estejam no campo ativo** no momento da ativação.
+
+---
 *Próxima revisão: definir tipos de inimigos, comportamento de IA inimiga e estrutura de chefes de dungeon*

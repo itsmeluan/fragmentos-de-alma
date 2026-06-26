@@ -5,6 +5,7 @@
 import type { Hero, Genome } from '../genes/types'
 import type { Skill } from '../skills/types'
 import { resolveSkill } from '../skills/resolver'
+import { resolveResonance, getResonanceDef, getResonanceVariant, hasExaltedForm } from './resonance'
 import {
   type BattleState, type BattleAction, type BattleEvent,
   type Combatant, type CombatSlot, type EnemySpec, type StatusEffect,
@@ -59,6 +60,8 @@ function heroCombatant(hero: Hero, slot: CombatSlot): Combatant {
     slot,
     isEnemy: false,
     generation: hero.generation,
+    bond: hero.bond,
+    resonanceExaustaRemaining: 0,
   }
 }
 
@@ -81,6 +84,8 @@ function enemyCombatant(enemy: EnemySpec, slot: CombatSlot): Combatant {
     slot,
     isEnemy: true,
     generation: 1,
+    bond: 0,
+    resonanceExaustaRemaining: 0,
     aiPattern: enemy.aiPattern,
   }
 }
@@ -233,6 +238,14 @@ function applyEvents(state: BattleState, events: BattleEvent[]): BattleState {
         s = updateCombatant(s, target.id, { statusEffects: [...target.statusEffects, debuff] })
         break
       }
+      case 'ultimate_charged': {
+        if (ev.value) {
+          s = updateCombatant(s, target.id, {
+            ultimateCharge: Math.min(100, target.ultimateCharge + ev.value),
+          })
+        }
+        break
+      }
     }
   }
   return s
@@ -272,6 +285,7 @@ function doSkill(state: BattleState, action: BattleAction): BattleState {
 function doUltimate(state: BattleState, action: BattleAction): BattleState {
   const actor = state.combatants[action.actorId]
   if (!actor?.isAlive || actor.ultimateCharge < 100) return state
+  if (actor.resonanceExaustaRemaining > 0) return state
 
   const ult = actor.skills.unique[0] ?? actor.skills.emergent[0]
   if (!ult) return state
@@ -316,16 +330,46 @@ function doSwap(state: BattleState, action: BattleAction): BattleState {
   return addEvents(s, [ev])
 }
 
+function doResonance(state: BattleState, action: BattleAction): BattleState {
+  const heroA = state.combatants[action.actorId]
+  const heroB = action.partnerId ? state.combatants[action.partnerId] : undefined
+  if (!heroA || !heroB) return state
+
+  const affA = heroA.genome.essence.affinity
+  const affB = heroB.genome.essence.affinity
+  const def = getResonanceDef(affA, affB)
+  if (!def) return state
+
+  const pair = {
+    heroA,
+    heroB,
+    def,
+    variant: getResonanceVariant(heroA, heroB),
+    exaltada: hasExaltedForm(heroA, heroB),
+  }
+
+  const events = resolveResonance(pair, state)
+  let s = applyEvents(state, events)
+
+  // Ambos os heróis: zerar ultimate + aplicar Exausta (1 turno sem agir, ult bloqueada 2 turnos)
+  s = updateCombatant(s, heroA.id, { ultimateCharge: 0, isDefending: false, resonanceExaustaRemaining: 2 })
+  s = updateCombatant(s, heroB.id, { ultimateCharge: 0, isDefending: false, resonanceExaustaRemaining: 2 })
+
+  s = addEvents(s, events)
+  return checkPhase(s)
+}
+
 // ─── API pública ──────────────────────────────────────────────────────────────
 
 export function applyAction(state: BattleState, action: BattleAction): BattleState {
   if (state.phase !== 'active') return state
   switch (action.type) {
-    case 'skill':    return doSkill(state, action)
-    case 'ultimate': return doUltimate(state, action)
-    case 'defend':   return doDefend(state, action)
-    case 'swap':     return doSwap(state, action)
-    default:         return state
+    case 'skill':      return doSkill(state, action)
+    case 'ultimate':   return doUltimate(state, action)
+    case 'defend':     return doDefend(state, action)
+    case 'swap':       return doSwap(state, action)
+    case 'resonance':  return doResonance(state, action)
+    default:           return state
   }
 }
 
@@ -337,6 +381,14 @@ export function startTurn(state: BattleState): BattleState {
   const actor = state.combatants[actorId]
   const events: BattleEvent[] = [{ type: 'turn_start', actorId, label: `Turno de ${actor.name}.` }]
   let s: BattleState = state
+
+  // Ressonância Exausta: herói não pode agir, decrementa contador
+  if (actor.resonanceExaustaRemaining > 0) {
+    const remaining = actor.resonanceExaustaRemaining - 1
+    s = updateCombatant(s, actorId, { resonanceExaustaRemaining: remaining })
+    events.push({ type: 'resonance_exausta', actorId, label: `${actor.name} está em Ressonância Exausta e não pode agir (${remaining} turno(s) restante(s) de bloqueio de ult).` })
+    return addEvents(s, events)
+  }
 
   const surviving: StatusEffect[] = []
   for (const eff of actor.statusEffects) {

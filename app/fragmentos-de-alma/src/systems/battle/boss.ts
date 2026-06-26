@@ -380,6 +380,8 @@ function applyInvocacaoMassiva(state: BattleState, bossId: string, rng: () => nu
       slot: slotKey,
       isEnemy: true,
       generation: 1,
+      bond: 0,
+      resonanceExaustaRemaining: 0,
       aiPattern: 'aggressive',
     }
 

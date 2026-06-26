@@ -6,6 +6,20 @@
 
 ## Estado Atual
 
+### Sistema de Ressonância Crítica (2026-06-26)
+Implementado o sistema de ultimate em dupla "Ressonância Crítica" (D64 em `docs/09_roadmap_mvp.md`):
+- **12 pares sinérgicos** (4 DANO, 4 SUPORTE, 4 CURA) em `src/systems/battle/resonance.ts` — tabela simétrica, sem sobreposição
+- **Pré-requisitos**: ambos no campo ativo, raridade ≥ Raro, vínculo ≥ 3★ (`bond ≥ 50`), ultimate 100%, fora do estado Exausta
+- **Variantes** (Bruta/Elemental/Ágil) por atributo dominante médio; **Forma Exaltada** (×1.5) se qualquer herói tem mutação
+- **Estado Exausta**: após ativação, ambos não agem por 1 turno e têm ultimate bloqueada por 2 turnos
+- Sem limite de pares simultâneos no time — um time de 6 heróis totalmente sinérgico é válido
+- Novos tipos: `ActionType 'resonance'`, `EventType 'resonance_used'` e `'resonance_exausta'`, campo `BattleAction.partnerId`
+- Campo `bond` e `resonanceExaustaRemaining` adicionados ao `Combatant`
+- `engine.ts` integrado: `doResonance()`, bloqueio de ultimate durante Exausta em `doUltimate()`, decremento de Exausta em `startTurn()`
+- Sistema de vantagens elementais (D63) também implantado nesta sessão: tabela 8×8 em `affinityChart.ts`, multiplicadores em `resolver.ts`
+
+Validação: `npx tsc --noEmit` limpo (apenas erro pré-existente em `HeroCard.tsx`); **383 testes passando** (18 suites).
+
 ### Círculo de Transmutação (2026-06-24)
 Implementados os 8 passos do prompt de transmutação (ver D39–D44 em `docs/09_roadmap_mvp.md`): migration `007_transmutation.sql` com tabela `ecos` e roster/legacy em `players`; migration `008_test_data_luan.sql` para recursos de desenvolvimento; tipos e funções puras em `src/systems/genes/eco.ts`; `gameStore` expandido com Ecos, roster, criação/absorção, extração de Cristais e transmutação; nova tela `app/(game)/transmutation.tsx` com abas **Criar Eco**, **Extrair** e **Transmutar**; tab antiga `fusion` escondida/redirecionada para **Círculo**; `RosterManager` integrado à Coleção; `docs/00_documento_mestre.md` atualizado com o doc 13.
 
@@ -725,6 +739,20 @@ Reestruturação completa da aba de coleção e padronização visual de todo o 
   - `body` e `bodyItalic`: `Rajdhani_500Medium` (Libre Baskerville removida do uso)
 - `app/_layout.tsx`: `Rajdhani_700Bold` adicionado ao `useFonts`
 - Cinzel e LibreBaskerville continuam carregadas (código legado pode referenciar) mas não são mais usadas no tema
+
+---
+
+### Sistema de Vantagens e Fraquezas de Afinidade (2026-06-26)
+
+Implementação da tabela de matchups 8×8 de afinidades elementais (ver D63 em `docs/09_roadmap_mvp.md`).
+
+- `src/systems/battle/affinityChart.ts` (novo) — `AFFINITY_CHART` completa (tabela 8×8), `affinityMultiplier(attacker, defender)`, `affinityEffectiveness(mult)` com label por tier
+- `src/systems/skills/resolver.ts` — `affinityMultiplier` aplicado em E01 (dano físico), E02 (dano elemental) e E08 (drain); efeito secundário M06 também afetado; label de efetividade embutido no `BattleEvent.label`
+- `src/systems/battle/affinityChart.test.ts` (novo) — 22 testes: ciclo clássico, pares caos, pares voláteis, matchups neutros, labels
+- `docs/06_sistema_de_batalha.md` — nova seção "Vantagens e Fraquezas de Afinidade" com tabela completa
+- `docs/09_roadmap_mvp.md` — D63 adicionado ao log de decisões
+
+Validação: `npm test -- --runInBand` com **17 suites / 340 testes passando**; `tsc --noEmit` limpo.
 
 ---
 
