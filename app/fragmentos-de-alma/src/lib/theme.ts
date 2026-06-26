@@ -39,13 +39,13 @@ export const theme = {
 
   typography: {
     title: {
-      fontFamily: 'Cinzel_700Bold',
+      fontFamily: 'Rajdhani_700Bold',
       fontSize: 28,
-      letterSpacing: 2,
+      letterSpacing: 3,
       color: '#C8960C',
     },
     heroName: {
-      fontFamily: 'Cinzel_400Regular',
+      fontFamily: 'Rajdhani_600SemiBold',
       fontSize: 18,
       letterSpacing: 1,
       color: '#E8E0D0',
@@ -64,13 +64,13 @@ export const theme = {
       color: '#8A8A9A',
     },
     body: {
-      fontFamily: 'LibreBaskerville_400Regular',
+      fontFamily: 'Rajdhani_500Medium',
       fontSize: 14,
       lineHeight: 22,
       color: '#E8E0D0',
     },
     bodyItalic: {
-      fontFamily: 'LibreBaskerville_400Regular_Italic',
+      fontFamily: 'Rajdhani_500Medium',
       fontSize: 14,
       lineHeight: 22,
       color: '#E8E0D0',

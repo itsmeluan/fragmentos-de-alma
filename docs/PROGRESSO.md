@@ -1,5 +1,5 @@
 # PROGRESSO — Fragmentos de Alma
-*Atualizado em: 2026-06-24*
+*Atualizado em: 2026-06-26*
 *Lido por: Claude Code em sessões futuras*
 
 ---
@@ -649,11 +649,95 @@ Resumo do que foi projetado:
 
 ---
 
+### Polimento Visual — Sprites Pixel Art, HeroCard e Gerador de Nomes (2026-06-25)
+
+Produção de assets visuais e redesenho completo do card de herói. Trabalho realizado em sessões continuadas (ver commits `769a35a`, `04eea57`, `1410d30` e subsequentes).
+
+**Sistema de sprites de heróis:**
+- `src/systems/visual/spriteRegistry.ts` (auto-gerado) — mapa estático de todos os sprites de herói por classe → build → tier → direção; `require()` com literais estáticas para compatibilidade com Metro bundler
+- `src/systems/visual/heroSprite.ts` — função `getHeroSpritePath(core, build, rarity, direction)` que lê o `SPRITE_REGISTRY`; fallback para tier imediatamente inferior se asset ausente
+- `src/systems/visual/heroSprite.test.ts` — testes de resolução de sprite e fallback
+- `src/systems/visual/backgroundRegistry.ts` (auto-gerado) — mapa de backgrounds de batalha por `raridade × origem (7 territórios)`; 42 imagens
+- `src/systems/visual/originBackgroundRegistry.ts` — backgrounds por `raridade × origem de herói`; organização em `assets/sprites/backgrounds/origens/[raridade]/[origem]/`
+- `src/systems/visual/elementRegistry.ts` — ícones de elementos (afinidade) por nome canônico
+- `src/systems/visual/bossRegistry.ts` — sprites de chefes por bioma × fase (3 fases cada)
+- `src/systems/visual/enemyRegistry.ts` — sprites de inimigos comuns por bioma
+
+**Assets de sprites (PixelLab):**
+- 10 variações de inimigos comuns (um por bioma, 2 por bioma maior)
+- 21 sprites de chefes (7 chefes × 3 fases de transformação)
+- 10 builds de heróis × 6 tiers de raridade × 8 direções = 480 sprites de herói
+- 42 backgrounds de batalha (6 raridades × 7 territórios)
+- 30 backgrounds de origem de herói (6 raridades × 5 origens)
+- Ícones de elementos para as 8 afinidades
+
+**HeroCard — redesenho completo (ver D49–D53 em `docs/09_roadmap_mvp.md`):**
+- Formato retrato (portrait) com proporção vertical; 3 colunas na grade
+- Strip superior fixo (nome + nível) sobreposto à arte
+- Strip inferior fixo (ícone de afinidade + Classe · Origem + estrelas de vínculo)
+- Arte renderizada em Canvas Skia ocupando largura total com inset horizontal de 5px (sem inset vertical — strips tocam as bordas da arte)
+- Sombra purple `#2a0d60` em wrapper externo; `overflow: hidden` apenas no Pressable interno — resolve conflito iOS
+- Sprite de tier único normalizado com `UNIQUE_SPRITE_INSET_RATIO = 0.10` para equalizar o tamanho visual entre tiers
+- Largura fixa por `useWindowDimensions` + prop `width` → evita esticamento no último item da grade
+
+**Gerador de nomes — reescrita completa (ver D54 em `docs/09_roadmap_mvp.md`):**
+- `generateName(genome, seed)` → nome de uma palavra só: `prefixo + raiz + sufixo`
+- Sem espaços, sem epítetos, sem parâmetro `ancestorName`; determinístico via `makeSeededRng`
+- 9 testes unitários passando; Passo 9 atualizado no checklist
+
+**Script de atualização de nomes:**
+- `scripts/update-hero-names.mjs` — atualiza nomes de heróis existentes no Supabase para o novo formato de uma palavra; requer `SUPA_EMAIL` + `SUPA_PASSWORD` (conta `m.luan.mobile@gmail.com`)
+
+---
+
+### Polimento UI — Coleção, Fontes e Ordenação (2026-06-26)
+
+Reestruturação completa da aba de coleção e padronização visual de todo o app.
+
+**Separação da coleção em duas abas (ver D55 em `docs/09_roadmap_mvp.md`):**
+- `app/(game)/heroes.tsx` (novo) — tela de heróis com: título "HERÓIS", texto `ordenar por [opção]` (sem borda, toque abre dropdown), grid 3 colunas, botão flutuante "TIME" em pílula dourada, modais de detalhe e roster
+- `app/(game)/ecos.tsx` (novo) — tela de ecos com: título "ECOS", lista de EcoRow com borda colorida por raridade, sheet de detalhe
+- `app/(game)/collection.tsx` — agora só redireciona para `/heroes` (rota legada preservada)
+
+**Dropdown de ordenação (ver D56 em `docs/09_roadmap_mvp.md`):**
+- 4 critérios: Raridade / Nível / Afinidade / Classe
+- Sem caixa/borda/fundo: texto puro alinhado à direita
+- Overlay semitransparente `rgba(0,0,0,0.84)` cobre tela abaixo do header
+- Header nunca escurecido: posicionamento via `onLayout` → `layout.y + layout.height` (inclui safe area inset)
+- Opção ativa: `Rajdhani_700Bold` + dourado; inativas: `Rajdhani_500Medium` + secundária
+- Animação spring via `Animated.Value`; fecha ao tocar overlay ou selecionar opção
+
+**Navegação — nova estrutura de tabs (ver D57 em `docs/09_roadmap_mvp.md`):**
+- `app/(game)/_layout.tsx`: Mapa → **Heróis** (ícone almas) → **Ecos** (ícone diamante) → Círculo → Kael
+- `src/components/ui/TabIcon.tsx`: novo ícone `ecos` (diamante com facetas, estilo pixel art)
+- `collection` marcado como `href: null` (oculto da tab bar mas rota ainda existe)
+
+**Terminologia — "Núcleo" → "Classe" (ver D58):**
+- `src/components/transmutation/EcoDetail.tsx`: linha 41 `Núcleo:` → `Classe:`
+- Nota: `app/(game)/index.tsx` linha 501 referencia o **núcleo do chefe de dungeon** (contexto diferente) — mantido como "Núcleo"
+
+**Fontes — padronização total para Rajdhani (ver D59):**
+- `src/lib/theme.ts`: todos os `fontFamily` migrados para Rajdhani
+  - `title`: `Rajdhani_700Bold` (títulos das telas em negrito)
+  - `heroName`: `Rajdhani_600SemiBold`
+  - `stat`: `Rajdhani_600SemiBold`
+  - `label`: `Rajdhani_500Medium`
+  - `body` e `bodyItalic`: `Rajdhani_500Medium` (Libre Baskerville removida do uso)
+- `app/_layout.tsx`: `Rajdhani_700Bold` adicionado ao `useFonts`
+- Cinzel e LibreBaskerville continuam carregadas (código legado pode referenciar) mas não são mais usadas no tema
+
+---
+
 ## Próximo Passo
 
-**Implementação do Círculo de Transmutação**
-Ver `docs/13_transmutacao.md` e prompt Codex em `codex-output/PROMPT_TRANSMUTACAO_COMPLETO.md`.
-⚠️ Confirme antes de iniciar (ou usar o prompt Codex diretamente).
+**Não há um passo funcional pendente definido.** O app está com todos os sistemas implementados (Passos 1–25) e polido visualmente. Próximas opções:
+
+1. **Passo 26 — Conflito de Facções (PvP assíncrono):** ver `docs/12_endgame.md`
+2. **Polimento adicional de batalha:** sprites na tela de batalha, animações de skill
+3. **Ajustes de balanceamento:** dungeons, curvas de progressão, economia
+4. **Testes em dispositivo:** verificar fluxos completos no iPhone real
+
+⚠️ Aguardando decisão do usuário antes de avançar.
 
 ---
 

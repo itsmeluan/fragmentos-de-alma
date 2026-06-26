@@ -118,6 +118,17 @@ Jest + React Native Testing Library (testes)
 | D46 | Transmutação | **Transmutação agora usa Eco principal A + Eco principal B**, não heróis pais. Ecos principais não são consumidos; até 3 catalisadores são consumidos. Custo = Fragmentos + Cristais pela maior raridade dos Ecos principais (100/300/800/2000/5000 Fragmentos e 1/3/8/20/50/120 Cristais) | Correção de mecânica definida no teste rápido: a transmutação deve nascer de blueprints genéticos, não de heróis vivos |
 | D47 | Transmutação/UI | Tela **Almas** ganhou abas internas **Heróis** e **Ecos**; heróis em time/banco recebem frame/badge; tocar Eco abre sheet própria de detalhes; `Modal` ganhou modo `fill` para sheets longas | Corrige legibilidade da coleção, torna Ecos inspecionáveis e resolve sheet de detalhes aparecendo cortada/fora da tela |
 | D48 | Dados de teste | **Migration 009** reaplica créditos para `m.luan.mobile@gmail.com` e promove dois heróis ativos para nível 50 | Garante validação imediata de recursos e do fluxo Criar Eco com heróis capados, mantendo heróis nível 1 para verificar estado desabilitado |
+| D49 | Visual/HeroCard | **HeroCard totalmente refeito em formato retrato** com Canvas Skia: strip superior (nome+nível), arte quadrada com inset horizontal 5px (sem inset vertical — strips tocam as bordas da arte), strip inferior (ícone afinidade + Classe·Origem + estrelas). Sombra purple `#2a0d60` em wrapper externo sem `overflow:hidden`; clipping apenas no Pressable interno. Resolve conflito iOS onde `overflow:hidden` cancela `shadow*` | Redesenho solicitado pelo usuário: o HeroVisual baseado em VisualParams procedurais foi substituído por sprites pixel art reais vindos do PixelLab. O HeroCard agora é o ponto de entrada visual principal do jogo |
+| D50 | Visual/Sprites | **`UNIQUE_SPRITE_INSET_RATIO = 0.10`** em `HeroCard.tsx` e `HeroSprite.tsx` — sprite único renderizado em 80% da área de arte para normalizar tamanho visual entre tiers | Sprites Únicos (136×136px) têm personagem mais denso que os outros tiers (~124px de conteúdo real); sem o inset parecem maiores. O ratio foi calibrado visualmente no dispositivo |
+| D51 | Visual/Grade | **Largura fixa de card via `useWindowDimensions`**: `cardWidth = Math.floor((screenWidth - 32) / 3)` passado como prop `width` ao HeroCard, que aplica `{ flex: 0, width }` no wrapper | `FlatList numColumns={3}` com `flex: 1` esticava o último item quando a linha ficava incompleta (1 ou 2 heróis). Largura fixa elimina o stretch sem precisar de padding artificial |
+| D52 | Visual/Sprites | **Sistema de sprite registry auto-gerado**: `spriteRegistry.ts`, `backgroundRegistry.ts`, `originBackgroundRegistry.ts`, `bossRegistry.ts`, `enemyRegistry.ts` usam `require()` com literais estáticas | Metro bundler do RN exige strings literais em `require()` para incluir assets no bundle; não é possível usar paths dinâmicos. Os registries são mapas estáticos regenerados por script quando novos assets são adicionados |
+| D53 | Visual/HeroCard | **Cards sem bordas coloridas por raridade** — preenchimento preto `#09080f` com sombra roxa pequena; fundo da lista permanece `background.primary` (`#0A0A0F`) | Bordas coloridas criavam ruído visual excessivo na grade densa de 3 colunas. A raridade fica comunicada pelas estrelas e pelo background do sprite. Sombra roxa cria separação sutil sem iluminar o card |
+| D54 | Passo 9 | **`generateName(genome, seed)` reescrita para nomes de uma palavra** — `prefixo + raiz + sufixo` sem espaços, sem epítetos, sem parâmetro `ancestorName`. Determinístico via `makeSeededRng` | Nomes compostos ("Vex'kara Nox, o Partido") pareciam excessivamente sérios e difíceis de ler em card pequeno. Uma palavra compacta cabe melhor no strip de 26px do HeroCard e fica mais memorável |
+| D55 | UI/Coleção | **`collection.tsx` dividida em `heroes.tsx` + `ecos.tsx`** como tabs separadas na barra inferior. `collection.tsx` agora é só um redirect para `/heroes`. Abas internas de Heróis/Ecos (que existiam dentro de `collection.tsx`) foram promovidas a rotas de nível de tab | Heróis e Ecos são contextos suficientemente distintos para merecerem navegação de primeiro nível. A separação simplifica cada tela e permite futuras evoluções independentes |
+| D56 | UI/Ordenação | **Dropdown de ordenação sem container visual**: texto puro alinhado à direita sobre overlay `rgba(0,0,0,0.84)` que cobre a tela abaixo do header. Header nunca escurecido. Posicionamento via `onLayout` capturando `layout.y + layout.height` (não só `height`) para incluir o safe area inset no cálculo | `layout.y + layout.height` = posição do fundo do header no sistema de coordenadas da SafeAreaView (que inclui o paddingTop da safe area). Usar só `layout.height` posicionava as opções sobre o texto "ordenar por" porque ignorava o offset do safe area |
+| D57 | UI/Tabs | **Nova estrutura de tabs**: Mapa → Heróis (ícone almas) → Ecos (ícone diamante/cristal) → Círculo → Kael. Ícone `ecos` adicionado ao `TabIcon.tsx` como SVG inline (diamante com facetas). `collection` e `fusion` permanecem como rotas ocultas (`href: null`) para não quebrar navegação programática existente | A Transmutação (D42) já havia renomeado "Fundir" para "Círculo". Com a separação Heróis/Ecos, a tab bar agora tem 5 destinos que cobrem todos os fluxos principais do jogo |
+| D58 | Terminologia | **"Núcleo" → "Classe" na UI** em `EcoDetail.tsx`. O campo `genome.essence.core` representa a classe de combate do herói (Guardião, Destruidor, etc.) e foi renomeado para "Classe" na UI para evitar confusão com o "núcleo" do chefe de dungeon. A referência em `index.tsx` (hub) ao "Núcleo" do chefe (`boss_nucleus`) foi mantida — contexto diferente | "Core" do genoma = classe de combate; "núcleo" do chefe = fase final da dungeon. São conceitos distintos que coincidentemente compartilhavam o mesmo rótulo |
+| D59 | Visual/Fontes | **Todas as fontes do app migradas para Rajdhani**: `title` → `Rajdhani_700Bold`, `heroName` → `Rajdhani_600SemiBold`, `body`/`bodyItalic` → `Rajdhani_500Medium`. Cinzel e LibreBaskerville continuam carregadas mas não são mais usadas no `theme.ts`. `Rajdhani_700Bold` adicionado ao `useFonts` em `app/_layout.tsx` | Uniformidade tipográfica: o usuário pediu que toda a UI use a mesma fonte dos nomes dos heróis (que já era Rajdhani). `fontWeight: '700'` com fonte customizada no React Native não usa o arquivo bold — é necessário carregar `Rajdhani_700Bold` explicitamente e referenciar pelo nome |
 
 ---
 
@@ -127,85 +138,129 @@ Jest + React Native Testing Library (testes)
 ```
 fragmentos-de-alma/
 ├── app/                          # Telas (Expo Router)
-│   ├── (auth)/                   # Telas de autenticação
+│   ├── (auth)/
 │   │   ├── login.tsx
 │   │   └── register.tsx
-│   ├── (game)/                   # Telas principais do jogo
-│   │   ├── _layout.tsx           # Layout com navegação inferior
-│   │   ├── index.tsx             # Hub principal / mapa
-│   │   ├── collection.tsx        # Galeria de heróis
-│   │   ├── fusion.tsx            # Tela de fusão
-│   │   ├── dungeon/
-│   │   │   ├── [biomeId].tsx     # Seleção de andar
-│   │   │   └── battle.tsx        # Tela de batalha
-│   │   └── profile.tsx           # Perfil de Kael
-│   └── _layout.tsx               # Layout raiz
+│   ├── (game)/
+│   │   ├── _layout.tsx           # Tabs: Mapa / Heróis / Ecos / Círculo / Kael
+│   │   ├── index.tsx             # Hub principal / Mapa de Solum
+│   │   ├── heroes.tsx            # Galeria de heróis com dropdown de ordenação
+│   │   ├── ecos.tsx              # Galeria de Ecos
+│   │   ├── collection.tsx        # Redirect para /heroes (rota legada)
+│   │   ├── fusion.tsx            # Redirect para /transmutation (rota legada)
+│   │   ├── transmutation.tsx     # Círculo de Transmutação (3 abas)
+│   │   ├── profile.tsx           # Perfil de Kael
+│   │   └── dungeon/              # Stack próprio (tab bar oculta aqui)
+│   │       ├── _layout.tsx
+│   │       ├── [biomeId].tsx     # Seleção de andar por bioma
+│   │       ├── battle.tsx        # Tela de batalha
+│   │       ├── between.tsx       # Entre batalhas (HP, progresso, evento)
+│   │       ├── tower.tsx         # Torres de Ressonância (entrada)
+│   │       ├── tower-battle.tsx  # Batalha na torre (wrapper)
+│   │       └── tower-between.tsx # Entre andares da torre
+│   └── _layout.tsx               # Layout raiz (fontes, auth redirect)
 ├── src/
-│   ├── systems/                  # Lógica de sistemas do jogo
+│   ├── systems/
 │   │   ├── genes/
-│   │   │   ├── types.ts          # Tipos TypeScript de genes
-│   │   │   ├── generator.ts      # Gerador de genoma
-│   │   │   ├── fusion.ts         # Motor de fusão
-│   │   │   └── rarity.ts        # Calculador de raridade
+│   │   │   ├── types.ts
+│   │   │   ├── generator.ts
+│   │   │   ├── fusion.ts
+│   │   │   ├── rarity.ts
+│   │   │   └── eco.ts            # Tipos e funções puras de Eco
 │   │   ├── skills/
 │   │   │   ├── types.ts
-│   │   │   ├── generator.ts      # Gerador procedural de habilidades
-│   │   │   └── resolver.ts       # Resolve efeitos em batalha
+│   │   │   ├── generator.ts
+│   │   │   └── resolver.ts
 │   │   ├── visual/
 │   │   │   ├── types.ts
-│   │   │   └── generator.ts      # Gerador de parâmetros visuais
+│   │   │   ├── generator.ts      # Gerador de VisualParams procedurais
+│   │   │   ├── heroSprite.ts     # Resolução de sprite pixel art por core/build/rarity
+│   │   │   ├── spriteRegistry.ts # AUTO-GERADO: mapa require() de sprites de herói
+│   │   │   ├── backgroundRegistry.ts   # AUTO-GERADO: backgrounds de batalha (raridade × bioma)
+│   │   │   ├── originBackgroundRegistry.ts  # Backgrounds por origem de herói
+│   │   │   ├── bossRegistry.ts   # Sprites de chefes por bioma × fase
+│   │   │   ├── enemyRegistry.ts  # Sprites de inimigos comuns
+│   │   │   ├── elementRegistry.ts  # Ícones de elementos (afinidade)
+│   │   │   └── affinityColors.ts # Mapa de cores por afinidade
 │   │   ├── battle/
 │   │   │   ├── types.ts
-│   │   │   ├── engine.ts         # Motor de batalha (turnos, ações)
-│   │   │   ├── ai.ts             # IA de inimigos
-│   │   │   └── rewards.ts        # Sistema de recompensas
+│   │   │   ├── engine.ts
+│   │   │   ├── ai.ts
+│   │   │   ├── boss.ts           # Chefes com 3 fases
+│   │   │   └── rewards.ts
 │   │   ├── progression/
-│   │   │   ├── types.ts
-│   │   │   ├── kael.ts           # Progressão do jogador
-│   │   │   └── legacy.ts         # Sistema de legado e Ecos
+│   │   │   ├── dungeon.ts        # Lógica pura de dungeons e biomas
+│   │   │   ├── kael.ts
+│   │   │   ├── legacy.ts
+│   │   │   └── towers.ts         # Torres de Ressonância
 │   │   └── world/
 │   │       ├── types.ts
-│   │       └── rules.ts          # Motor de regras (pacote da IA coletiva)
-│   ├── components/               # Componentes React Native
+│   │       ├── mapData.ts        # Dados estáticos do mapa de Solum
+│   │       ├── factionEvents.ts  # 14 eventos de facção
+│   │       └── rules.ts
+│   ├── components/
 │   │   ├── hero/
-│   │   │   ├── HeroCard.tsx
-│   │   │   ├── HeroVisual.tsx    # Renderização procedural
+│   │   │   ├── HeroCard.tsx      # Card retrato (portrait) com Skia + strips sobrepostos
+│   │   │   ├── HeroSprite.tsx    # Canvas Skia de sprite pixel art com FilterMode.Nearest
+│   │   │   ├── HeroVisual.tsx    # Compatibilidade (re-export para HeroVisualSkia)
+│   │   │   ├── HeroVisualSkia.tsx  # Renderer Skia em 6 camadas (VisualParams procedurais)
 │   │   │   └── HeroDetail.tsx
 │   │   ├── battle/
 │   │   │   ├── BattleField.tsx
-│   │   │   ├── ActionWheel.tsx   # Roda de ações
+│   │   │   ├── ActionWheel.tsx
 │   │   │   ├── HeroSlot.tsx
 │   │   │   └── EnemySlot.tsx
 │   │   ├── fusion/
+│   │   │   ├── AlchemicalCircle.tsx  # Círculo alquímico animado (Skia + Reanimated)
 │   │   │   ├── FusionTable.tsx
 │   │   │   └── FusionPreview.tsx
-│   │   └── ui/                   # Componentes genéricos
+│   │   ├── transmutation/
+│   │   │   ├── EcoDetail.tsx     # Sheet de detalhe de Eco
+│   │   │   └── RosterManager.tsx # Seleção de time/banco
+│   │   ├── world/
+│   │   │   ├── BiomeBackground.tsx
+│   │   │   ├── FactionEmblem.tsx
+│   │   │   └── FactionEventModal.tsx
+│   │   ├── narrative/
+│   │   │   ├── OnboardingModal.tsx
+│   │   │   ├── PrologueModal.tsx
+│   │   │   └── LoreHint.tsx
+│   │   └── ui/
 │   │       ├── Button.tsx
 │   │       ├── Modal.tsx
-│   │       └── ProgressBar.tsx
-│   ├── store/                    # Estado global (Zustand)
-│   │   ├── gameStore.ts          # Estado principal do jogo
-│   │   ├── battleStore.ts        # Estado de batalha
-│   │   └── uiStore.ts            # Estado de UI
-│   ├── hooks/                    # React hooks customizados
-│   │   ├── useHero.ts
-│   │   ├── useFusion.ts
-│   │   ├── useBattle.ts
-│   │   └── useProgression.ts
+│   │       ├── ProgressBar.tsx
+│   │       ├── TabIcon.tsx       # Ícones SVG da tab bar (mapa/almas/ecos/fundir/kael)
+│   │       └── Ornaments.tsx
+│   ├── store/
+│   │   ├── gameStore.ts          # Player, heroes, ecos, roster, fusão, transmutação
+│   │   ├── battleStore.ts
+│   │   ├── dungeonStore.ts
+│   │   ├── towerStore.ts
+│   │   ├── worldStore.ts
+│   │   ├── narrativeStore.ts
+│   │   └── uiStore.ts
 │   ├── lib/
-│   │   ├── supabase.ts           # Cliente Supabase configurado
-│   │   └── constants.ts          # Constantes do jogo
+│   │   ├── supabase.ts
+│   │   ├── constants.ts
+│   │   └── theme.ts              # Tipografia: Rajdhani_700Bold/600SemiBold/500Medium
 │   └── utils/
-│       ├── random.ts             # Utilitários de aleatoriedade controlada
-│       ├── math.ts               # Funções matemáticas do jogo
-│       └── nameGenerator.ts      # Gerador de nomes procedural
+│       ├── random.ts
+│       ├── math.ts
+│       └── nameGenerator.ts      # generateName(genome, seed) → 1 palavra (prefix+root+suffix)
+├── scripts/
+│   └── update-hero-names.mjs    # Atualiza nomes no Supabase para formato de 1 palavra
 ├── supabase/
-│   ├── migrations/               # Migrations do banco de dados
-│   └── functions/                # Edge Functions
-├── assets/
-│   ├── fonts/
-│   └── sounds/
-└── docs/                         # Documentos de design (os 8 arquivos)
+│   ├── migrations/               # 001–009 aplicadas
+│   └── functions/
+└── assets/
+    ├── sprites/
+    │   ├── heroes/               # [classe]/[build]/[tier]/[direction].png
+    │   ├── backgrounds/          # [raridade]/[bioma].png (42 imagens)
+    │   │   └── origens/          # [raridade]/[origem]/[variante].png
+    │   ├── circles/              # Assets do Círculo de Transmutação
+    │   └── elements/             # Ícones de afinidade
+    ├── fonts/
+    └── sounds/
 ```
 
 ---

@@ -3,7 +3,7 @@ import { Stack, router, SplashScreen } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useFonts } from 'expo-font'
 import { Cinzel_400Regular, Cinzel_700Bold } from '@expo-google-fonts/cinzel'
-import { Rajdhani_500Medium, Rajdhani_600SemiBold } from '@expo-google-fonts/rajdhani'
+import { Rajdhani_500Medium, Rajdhani_600SemiBold, Rajdhani_700Bold } from '@expo-google-fonts/rajdhani'
 import {
   LibreBaskerville_400Regular,
   LibreBaskerville_400Regular_Italic,
@@ -19,6 +19,7 @@ export default function RootLayout() {
     Cinzel_700Bold,
     Rajdhani_500Medium,
     Rajdhani_600SemiBold,
+    Rajdhani_700Bold,
     LibreBaskerville_400Regular,
     LibreBaskerville_400Regular_Italic,
   })

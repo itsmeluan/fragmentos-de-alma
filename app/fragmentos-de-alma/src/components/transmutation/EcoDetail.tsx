@@ -38,7 +38,7 @@ export function EcoDetail({ eco }: EcoDetailProps) {
         <Text style={styles.sectionTitle}>ASSINATURA</Text>
         <Text style={styles.line}>Origem: {eco.signature_origin}</Text>
         <Text style={styles.line}>Afinidade: {eco.signature_affinity}</Text>
-        <Text style={styles.line}>Núcleo: {eco.signature_core}</Text>
+        <Text style={styles.line}>Classe: {eco.signature_core}</Text>
         <Text style={styles.line}>
           Mutações: {eco.signature_mutations.length > 0 ? eco.signature_mutations.join(', ') : 'nenhuma'}
         </Text>

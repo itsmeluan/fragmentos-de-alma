@@ -25,15 +25,15 @@ export default function GameLayout() {
         }}
       />
       <Tabs.Screen
-        name="collection"
+        name="heroes"
         options={{
           tabBarIcon: ({ focused }) => <TabIcon name="almas" active={focused} />,
         }}
       />
       <Tabs.Screen
-        name="fusion"
+        name="ecos"
         options={{
-          href: null,
+          tabBarIcon: ({ focused }) => <TabIcon name="ecos" active={focused} />,
         }}
       />
       <Tabs.Screen
@@ -48,7 +48,8 @@ export default function GameLayout() {
           tabBarIcon: ({ focused }) => <TabIcon name="kael" active={focused} />,
         }}
       />
-      {/* Dungeon/torre: fora da tab bar e esconde a barra durante a batalha */}
+      <Tabs.Screen name="collection" options={{ href: null }} />
+      <Tabs.Screen name="fusion" options={{ href: null }} />
       <Tabs.Screen
         name="dungeon"
         options={{
