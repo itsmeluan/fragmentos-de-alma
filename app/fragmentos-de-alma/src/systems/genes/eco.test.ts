@@ -8,8 +8,12 @@ import {
   canUseCatalystForRarity,
   ecoToGenome,
   flattenSkills,
+  getActiveLegacyTiers,
+  getLegacyBonuses,
   getLegacyTier,
   getTierUpChance,
+  isLegacyTierUnlocked,
+  LEGACY_TIERS,
   mergeGenes,
   mergeSkills,
   previewAbsorption,
@@ -117,6 +121,72 @@ describe('absorção de Eco', () => {
     expect(preview.changes).toEqual({})
     expect(preview.skillChanges).toEqual({})
     expect(preview.willAbsorb).toBe(false)
+  })
+})
+
+describe('LEGACY_TIERS (Score-based)', () => {
+  it('tem 5 tiers', () => {
+    expect(LEGACY_TIERS).toHaveLength(5)
+  })
+
+  it('tiers têm scoreRequired em ordem crescente', () => {
+    for (let i = 0; i < LEGACY_TIERS.length - 1; i++) {
+      expect(LEGACY_TIERS[i].scoreRequired).toBeLessThan(LEGACY_TIERS[i + 1].scoreRequired)
+    }
+  })
+
+  it('scoreRequired alinha com LEGACY_SCORE_THRESHOLDS [10,40,100,250,600]', () => {
+    expect(LEGACY_TIERS.map(t => t.scoreRequired)).toEqual([10, 40, 100, 250, 600])
+  })
+})
+
+describe('getActiveLegacyTiers / isLegacyTierUnlocked', () => {
+  it('nenhum tier ativo sem Ecos', () => {
+    expect(getActiveLegacyTiers([])).toHaveLength(0)
+  })
+
+  it('tier 1 ativo com score 10 (1 Eco Incomum = score 3 × ?; 1 Lendário = 50)', () => {
+    // 1 Lendário = score 50 → tiers 1 e 2 (10 e 40)
+    const ecos = [eco({ rarity: 'lendario', signature_key: 'k1' })]
+    const active = getActiveLegacyTiers(ecos)
+    expect(active.map(t => t.tier)).toContain(1)
+    expect(active.map(t => t.tier)).toContain(2)
+  })
+
+  it('isLegacyTierUnlocked: false abaixo do limiar', () => {
+    const ecos = [eco({ rarity: 'comum', signature_key: 'k1' })]  // score 1
+    expect(isLegacyTierUnlocked(ecos, 1)).toBe(false)
+  })
+
+  it('isLegacyTierUnlocked: true exatamente no limiar do tier 1 (score 10)', () => {
+    // 10 × Comum = score 10
+    const ecos = Array.from({ length: 10 }, (_, i) =>
+      eco({ rarity: 'comum', signature_key: `k${i}` }),
+    )
+    expect(isLegacyTierUnlocked(ecos, 1)).toBe(true)
+  })
+})
+
+describe('getLegacyBonuses', () => {
+  it('sem Ecos: todos os bônus são zero/false', () => {
+    const bonuses = getLegacyBonuses([])
+    expect(bonuses.rareDropBonus).toBe(0)
+    expect(bonuses.mutationBonus).toBe(0)
+    expect(bonuses.hasExtraCombatSlot).toBe(false)
+    expect(bonuses.hasVoidBiome).toBe(false)
+    expect(bonuses.hasAncestorInjection).toBe(false)
+  })
+
+  it('com 4 Únicos (score 600): todos os bônus ativos', () => {
+    const ecos = Array.from({ length: 4 }, (_, i) =>
+      eco({ rarity: 'unico', signature_key: `u${i}` }),
+    )
+    const bonuses = getLegacyBonuses(ecos)
+    expect(bonuses.rareDropBonus).toBe(0.05)
+    expect(bonuses.mutationBonus).toBe(0.03)
+    expect(bonuses.hasExtraCombatSlot).toBe(true)
+    expect(bonuses.hasVoidBiome).toBe(true)
+    expect(bonuses.hasAncestorInjection).toBe(true)
   })
 })
 

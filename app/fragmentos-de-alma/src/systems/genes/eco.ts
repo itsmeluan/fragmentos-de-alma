@@ -232,3 +232,95 @@ export function getTierUpChance(
   const bonus = KAEL_LEGACY_TIER_BONUS[getLegacyTier(legacyScore)] ?? 0
   return Math.min(Number((base + bonus).toFixed(2)), 0.99)
 }
+
+// ─── Legado da Conta: Tiers e Bônus por Score (doc 04) ───────────────────────
+// Sistema canônico de progressão de longa duração.
+// Score = soma ponderada de Ecos únicos por signature_key × ECO_LEGACY_WEIGHT.
+// Thresholds em LEGACY_SCORE_THRESHOLDS = [10, 40, 100, 250, 600].
+
+export type LegacyEffectType =
+  | 'rare_drop_bonus'
+  | 'mutation_bonus'
+  | 'extra_combat_slot'
+  | 'biome_unlock'
+  | 'ancestor_injection'
+
+export interface LegacyTier {
+  tier: 1 | 2 | 3 | 4 | 5
+  scoreRequired: number
+  name: string
+  description: string
+  effectType: LegacyEffectType
+  effectValue?: number
+}
+
+export const LEGACY_TIERS: LegacyTier[] = [
+  {
+    tier: 1,
+    scoreRequired: LEGACY_SCORE_THRESHOLDS[0],
+    name: 'Memória Persistente',
+    description: '+5% de chance de obter fragmentos raros em batalha.',
+    effectType: 'rare_drop_bonus',
+    effectValue: 0.05,
+  },
+  {
+    tier: 2,
+    scoreRequired: LEGACY_SCORE_THRESHOLDS[1],
+    name: 'Ressonância Alquímica',
+    description: 'Fusões têm +3% de chance de mutação positiva.',
+    effectType: 'mutation_bonus',
+    effectValue: 0.03,
+  },
+  {
+    tier: 3,
+    scoreRequired: LEGACY_SCORE_THRESHOLDS[2],
+    name: 'Equipe Expandida',
+    description: 'Novo slot de herói disponível na equipe de combate.',
+    effectType: 'extra_combat_slot',
+  },
+  {
+    tier: 4,
+    scoreRequired: LEGACY_SCORE_THRESHOLDS[3],
+    name: 'Portal do Vazio',
+    description: 'Acesso ao bioma "Vazio Fragmentado" desbloqueado.',
+    effectType: 'biome_unlock',
+  },
+  {
+    tier: 5,
+    scoreRequired: LEGACY_SCORE_THRESHOLDS[4],
+    name: 'Memória do Ancestral',
+    description: 'Injetar 1 gene de ancestral por semana em uma fusão futura.',
+    effectType: 'ancestor_injection',
+    effectValue: 1,
+  },
+]
+
+export interface LegacyBonuses {
+  rareDropBonus: number
+  mutationBonus: number
+  hasExtraCombatSlot: boolean
+  hasVoidBiome: boolean
+  hasAncestorInjection: boolean
+}
+
+export function getActiveLegacyTiers(ecos: readonly Eco[]): LegacyTier[] {
+  const score = calcLegacyScore(ecos)
+  return LEGACY_TIERS.filter(t => score >= t.scoreRequired)
+}
+
+export function isLegacyTierUnlocked(ecos: readonly Eco[], tier: 1 | 2 | 3 | 4 | 5): boolean {
+  const t = LEGACY_TIERS.find(lt => lt.tier === tier)
+  return t ? calcLegacyScore(ecos) >= t.scoreRequired : false
+}
+
+export function getLegacyBonuses(ecos: readonly Eco[]): LegacyBonuses {
+  const tiers = getActiveLegacyTiers(ecos)
+  const hasType = (t: LegacyEffectType) => tiers.some(lt => lt.effectType === t)
+  return {
+    rareDropBonus:        tiers.find(t => t.effectType === 'rare_drop_bonus')?.effectValue ?? 0,
+    mutationBonus:        tiers.find(t => t.effectType === 'mutation_bonus')?.effectValue ?? 0,
+    hasExtraCombatSlot:   hasType('extra_combat_slot'),
+    hasVoidBiome:         hasType('biome_unlock'),
+    hasAncestorInjection: hasType('ancestor_injection'),
+  }
+}

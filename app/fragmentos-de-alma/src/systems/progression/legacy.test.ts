@@ -1,11 +1,6 @@
 import { describe, it, expect } from '@jest/globals'
 import {
   createLegacyState,
-  calcRetirementEcos,
-  retireHero,
-  getActiveTiers,
-  isTierUnlocked,
-  getLegacyBonuses,
   recordEmergentDiscovery,
   isFirstDiscovery,
   incrementFusionBadLuck,
@@ -21,18 +16,18 @@ import {
   useAncestorInjection,
   canUseAncestorInjection,
   xpRequiredForHeroLevel,
-  LEGACY_TIERS,
   HERO_MILESTONES,
   BOND_PER_BATTLE,
 } from './legacy'
+import type { Eco } from '../genes/eco'
 import { generateFragmentGenome } from '../genes/generator'
 import { calculateRarity } from '../genes/rarity'
 import { generateSkills } from '../skills/generator'
 import { generateVisualParams } from '../visual/generator'
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeHero(overrides: Partial<Parameters<typeof calcRetirementEcos>[0]> = {}) {
+function makeHero(overrides: Record<string, unknown> = {}) {
   const genome = generateFragmentGenome()
   const rarity = calculateRarity(genome)
   return {
@@ -54,13 +49,37 @@ function makeHero(overrides: Partial<Parameters<typeof calcRetirementEcos>[0]> =
   }
 }
 
+function makeEco(overrides: Partial<Eco> = {}): Eco {
+  return {
+    id: 'eco-1',
+    player_id: 'player-1',
+    created_at: '2026-06-26T00:00:00.000Z',
+    signature_origin: 'Abissal',
+    signature_affinity: 'Fogo',
+    signature_core: 'Guardião',
+    signature_mutations: [],
+    signature_key: 'k1',
+    best_genes: {},
+    best_skills: {},
+    rarity: 'comum',
+    absorption_count: 1,
+    ...overrides,
+  }
+}
+
+// 4 Ecos Únicos com signatures diferentes = score 600 → tier 5 desbloqueado
+function tier5Ecos(): Eco[] {
+  return [
+    makeEco({ id: '1', signature_key: 'k1', rarity: 'unico' }),
+    makeEco({ id: '2', signature_key: 'k2', rarity: 'unico' }),
+    makeEco({ id: '3', signature_key: 'k3', rarity: 'unico' }),
+    makeEco({ id: '4', signature_key: 'k4', rarity: 'unico' }),
+  ]
+}
+
 // ─── createLegacyState ────────────────────────────────────────────────────────
 
 describe('createLegacyState', () => {
-  it('começa com 0 Ecos', () => {
-    expect(createLegacyState().totalEcos).toBe(0)
-  })
-
   it('começa com listas vazias', () => {
     const s = createLegacyState()
     expect(s.retiredHeroIds).toHaveLength(0)
@@ -69,140 +88,6 @@ describe('createLegacyState', () => {
 
   it('fusionBadLuckCounter começa em 0', () => {
     expect(createLegacyState().fusionBadLuckCounter).toBe(0)
-  })
-})
-
-// ─── LEGACY_TIERS invariantes ─────────────────────────────────────────────────
-
-describe('LEGACY_TIERS invariantes', () => {
-  it('tem 5 tiers', () => {
-    expect(LEGACY_TIERS).toHaveLength(5)
-  })
-
-  it('tiers são numerados 1–5 em ordem crescente de Ecos', () => {
-    for (let i = 0; i < LEGACY_TIERS.length - 1; i++) {
-      expect(LEGACY_TIERS[i].ecosRequired).toBeLessThan(LEGACY_TIERS[i + 1].ecosRequired)
-    }
-  })
-
-  it('cada tier tem nome e descrição não-vazios', () => {
-    for (const t of LEGACY_TIERS) {
-      expect(t.name.length).toBeGreaterThan(0)
-      expect(t.description.length).toBeGreaterThan(0)
-    }
-  })
-})
-
-// ─── calcRetirementEcos ──────────────────────────────────────────────────────
-
-describe('calcRetirementEcos', () => {
-  it('herói nível 1 comum vale pelo menos 1 Eco', () => {
-    const hero = makeHero({ level: 1, rarity: 'comum' })
-    expect(calcRetirementEcos(hero)).toBeGreaterThanOrEqual(1)
-  })
-
-  it('héróis de maior raridade valem mais Ecos', () => {
-    const comum   = makeHero({ rarity: 'comum',    level: 1 })
-    const epico   = makeHero({ rarity: 'epico',    level: 1 })
-    const lendario = makeHero({ rarity: 'lendario', level: 1 })
-    expect(calcRetirementEcos(epico)).toBeGreaterThan(calcRetirementEcos(comum))
-    expect(calcRetirementEcos(lendario)).toBeGreaterThan(calcRetirementEcos(epico))
-  })
-
-  it('heróis de nível maior valem mais Ecos', () => {
-    const low  = makeHero({ rarity: 'raro', level: 1 })
-    const high = makeHero({ rarity: 'raro', level: 40 })
-    expect(calcRetirementEcos(high)).toBeGreaterThan(calcRetirementEcos(low))
-  })
-
-  it('herói desperto (nível 50) recebe bônus de Ecos', () => {
-    const level49 = makeHero({ rarity: 'raro', level: 49 })
-    const level50 = makeHero({ rarity: 'raro', level: 50 })
-    expect(calcRetirementEcos(level50)).toBeGreaterThan(calcRetirementEcos(level49))
-  })
-})
-
-// ─── retireHero ──────────────────────────────────────────────────────────────
-
-describe('retireHero', () => {
-  it('acumula Ecos e registra id do herói', () => {
-    const legacy = createLegacyState()
-    const hero = makeHero({ id: 'hero-1', rarity: 'raro', level: 10 })
-    const { state, ecosEarned } = retireHero(legacy, hero)
-    expect(state.totalEcos).toBe(ecosEarned)
-    expect(state.retiredHeroIds).toContain('hero-1')
-  })
-
-  it('aposentar mesmo herói duas vezes não dá mais Ecos', () => {
-    const legacy = createLegacyState()
-    const hero = makeHero({ id: 'hero-dup', rarity: 'comum', level: 1 })
-    const { state: s1 } = retireHero(legacy, hero)
-    const { state: s2, ecosEarned } = retireHero(s1, hero)
-    expect(ecosEarned).toBe(0)
-    expect(s2.totalEcos).toBe(s1.totalEcos)
-  })
-
-  it('múltiplos heróis acumulam Ecos separadamente', () => {
-    const legacy = createLegacyState()
-    const h1 = makeHero({ id: 'h1', rarity: 'comum',  level: 1 })
-    const h2 = makeHero({ id: 'h2', rarity: 'lendario', level: 1 })
-    const { state: s1 } = retireHero(legacy, h1)
-    const { state: s2 } = retireHero(s1, h2)
-    expect(s2.totalEcos).toBeGreaterThan(s1.totalEcos)
-  })
-})
-
-// ─── getActiveTiers / isTierUnlocked ─────────────────────────────────────────
-
-describe('getActiveTiers', () => {
-  it('nenhum tier ativo com 0 Ecos', () => {
-    expect(getActiveTiers(createLegacyState())).toHaveLength(0)
-  })
-
-  it('tier 1 ativo com 10 Ecos', () => {
-    const s = { ...createLegacyState(), totalEcos: 10 }
-    expect(getActiveTiers(s)).toHaveLength(1)
-    expect(getActiveTiers(s)[0].tier).toBe(1)
-  })
-
-  it('todos os tiers ativos com 200+ Ecos', () => {
-    const s = { ...createLegacyState(), totalEcos: 200 }
-    expect(getActiveTiers(s)).toHaveLength(5)
-  })
-})
-
-describe('isTierUnlocked', () => {
-  it('retorna false para tier não atingido', () => {
-    const s = { ...createLegacyState(), totalEcos: 9 }
-    expect(isTierUnlocked(s, 1)).toBe(false)
-  })
-
-  it('retorna true exatamente no limiar', () => {
-    const s = { ...createLegacyState(), totalEcos: 10 }
-    expect(isTierUnlocked(s, 1)).toBe(true)
-  })
-})
-
-// ─── getLegacyBonuses ────────────────────────────────────────────────────────
-
-describe('getLegacyBonuses', () => {
-  it('sem tiers: todos bônus são zero/false', () => {
-    const bonuses = getLegacyBonuses(createLegacyState())
-    expect(bonuses.rareDropBonus).toBe(0)
-    expect(bonuses.mutationBonus).toBe(0)
-    expect(bonuses.hasExtraCombatSlot).toBe(false)
-    expect(bonuses.hasVoidBiome).toBe(false)
-    expect(bonuses.hasAncestorInjection).toBe(false)
-  })
-
-  it('com todos os tiers: bônus corretos', () => {
-    const s = { ...createLegacyState(), totalEcos: 200 }
-    const bonuses = getLegacyBonuses(s)
-    expect(bonuses.rareDropBonus).toBe(0.05)
-    expect(bonuses.mutationBonus).toBe(0.03)
-    expect(bonuses.hasExtraCombatSlot).toBe(true)
-    expect(bonuses.hasVoidBiome).toBe(true)
-    expect(bonuses.hasAncestorInjection).toBe(true)
   })
 })
 
@@ -267,10 +152,11 @@ describe('getPityMutationBonus', () => {
 })
 
 describe('getTotalMutationBonus', () => {
-  it('combina tier 2 e pity', () => {
-    const s = { ...createLegacyState(), totalEcos: 25, fusionBadLuckCounter: 15 }
-    const total = getTotalMutationBonus(s)
-    expect(total).toBeGreaterThan(0.03)  // só tier 2
+  it('combina bônus de tier e pity', () => {
+    // Um Lendário = score 50 → tier 2 (scoreRequired=40), mutationBonus=0.03
+    const ecos = [makeEco({ rarity: 'lendario', signature_key: 'lend1' })]
+    const legacy = { ...createLegacyState(), fusionBadLuckCounter: 15 }
+    expect(getTotalMutationBonus(legacy, ecos)).toBeGreaterThan(0.03)
   })
 })
 
@@ -386,46 +272,41 @@ describe('addHeroBond', () => {
 // ─── Injeção de ancestral ────────────────────────────────────────────────────
 
 describe('canUseAncestorInjection', () => {
-  it('false sem tier 5 desbloqueado', () => {
-    expect(canUseAncestorInjection(createLegacyState())).toBe(false)
+  it('false sem tier 5 desbloqueado (sem Ecos)', () => {
+    expect(canUseAncestorInjection(createLegacyState(), [])).toBe(false)
   })
 
   it('true com tier 5 e injeção não usada', () => {
-    const s = { ...createLegacyState(), totalEcos: 200 }
-    expect(canUseAncestorInjection(s)).toBe(true)
+    expect(canUseAncestorInjection(createLegacyState(), tier5Ecos())).toBe(true)
   })
 
   it('false após usar a injeção semanal', () => {
-    const s = { ...createLegacyState(), totalEcos: 200, ancestorInjectionUsed: true }
-    expect(canUseAncestorInjection(s)).toBe(false)
+    const s = { ...createLegacyState(), ancestorInjectionUsed: true }
+    expect(canUseAncestorInjection(s, tier5Ecos())).toBe(false)
   })
 })
 
 describe('useAncestorInjection', () => {
   it('marca injeção como usada', () => {
-    const s = { ...createLegacyState(), totalEcos: 200 }
-    const result = useAncestorInjection(s)
+    const result = useAncestorInjection(createLegacyState(), tier5Ecos())
     expect(result.ancestorInjectionUsed).toBe(true)
   })
 
   it('não faz nada sem tier 5', () => {
-    const s = createLegacyState()
-    const result = useAncestorInjection(s)
+    const result = useAncestorInjection(createLegacyState(), [])
     expect(result.ancestorInjectionUsed).toBe(false)
   })
 })
 
 describe('checkWeeklyReset', () => {
   it('reseta ancestorInjectionUsed quando a semana mudou', () => {
-    const oldMonday = '2020-01-06'  // segunda-feira passada
-    const s = { ...createLegacyState(), totalEcos: 200, ancestorInjectionUsed: true, weeklyResetDateKey: oldMonday }
+    const oldMonday = '2020-01-06'
+    const s = { ...createLegacyState(), ancestorInjectionUsed: true, weeklyResetDateKey: oldMonday }
     const result = checkWeeklyReset(s)
-    // A semana atual é diferente de 2020-01-06, então deve resetar
     expect(result.ancestorInjectionUsed).toBe(false)
   })
 
   it('não reseta quando ainda é a mesma semana', () => {
-    // Usa a segunda-feira atual como chave
     const today = new Date()
     const day = today.getUTCDay()
     const diffToMonday = day === 0 ? -6 : 1 - day
@@ -433,8 +314,8 @@ describe('checkWeeklyReset', () => {
     monday.setUTCDate(today.getUTCDate() + diffToMonday)
     const currentKey = monday.toISOString().slice(0, 10)
 
-    const s = { ...createLegacyState(), totalEcos: 200, ancestorInjectionUsed: true, weeklyResetDateKey: currentKey }
+    const s = { ...createLegacyState(), ancestorInjectionUsed: true, weeklyResetDateKey: currentKey }
     const result = checkWeeklyReset(s)
-    expect(result.ancestorInjectionUsed).toBe(true)  // sem reset
+    expect(result.ancestorInjectionUsed).toBe(true)
   })
 })
