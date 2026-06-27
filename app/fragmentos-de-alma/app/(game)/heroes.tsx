@@ -3,12 +3,13 @@ import {
   Animated, FlatList, Pressable,
   StyleSheet, Text, View, useWindowDimensions,
 } from 'react-native'
+import type { CardOriginLayout } from '@/components/hero/HeroFlipDetail'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { theme } from '@/lib/theme'
 import { useGameStore } from '@/store/gameStore'
 import { useUiStore } from '@/store/uiStore'
 import { HeroCard } from '@/components/hero/HeroCard'
-import { HeroDetail } from '@/components/hero/HeroDetail'
+import { HeroFlipDetail } from '@/components/hero/HeroFlipDetail'
 import { Modal } from '@/components/ui/Modal'
 import { RosterManager } from '@/components/transmutation/RosterManager'
 import { useNarrativeStore } from '@/store/narrativeStore'
@@ -52,8 +53,11 @@ export default function HeroesScreen() {
   const [headerBottom, setHeaderBottom] = useState(100)
   const [showRoster, setShowRoster] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [selectedCardLayout, setSelectedCardLayout] = useState<CardOriginLayout | null>(null)
 
   const dropdownAnim = useRef(new Animated.Value(0)).current
+  // Refs para medir a posição de cada card no momento do toque
+  const cardRefs = useRef(new Map<string, View>())
 
   useEffect(() => {
     loadHeroes()
@@ -69,6 +73,16 @@ export default function HeroesScreen() {
     if (player?.teamHeroIds.includes(hero.id)) return 'team'
     if (player?.benchHeroIds.includes(hero.id)) return 'bench'
     return undefined
+  }
+
+  const heroPosition = (hero: Hero): string | null => {
+    if (!player) return null
+    const idx = player.teamHeroIds.indexOf(hero.id)
+    if (idx === 0) return 'Frente'
+    if (idx === 1) return 'Centro'
+    if (idx === 2) return 'Fundo'
+    if (player.benchHeroIds.includes(hero.id)) return 'Banco'
+    return null
   }
 
   const openDropdown = () => {
@@ -141,12 +155,30 @@ export default function HeroesScreen() {
           columnWrapperStyle={styles.row}
           contentContainerStyle={styles.grid}
           renderItem={({ item }) => (
-            <HeroCard
-              hero={item}
-              onPress={setSelectedHero}
-              rosterRole={rosterRole(item)}
-              width={cardWidth}
-            />
+            <View
+              ref={ref => {
+                if (ref) cardRefs.current.set(item.id, ref)
+                else cardRefs.current.delete(item.id)
+              }}
+            >
+              <HeroCard
+                hero={item}
+                onPress={hero => {
+                  const ref = cardRefs.current.get(hero.id)
+                  if (ref) {
+                    ref.measureInWindow((x, y, w, h) => {
+                      setSelectedCardLayout({ x, y, width: w, height: h })
+                      setSelectedHero(hero)
+                    })
+                  } else {
+                    setSelectedCardLayout(null)
+                    setSelectedHero(hero)
+                  }
+                }}
+                rosterRole={rosterRole(item)}
+                width={cardWidth}
+              />
+            </View>
           )}
         />
       )}
@@ -182,15 +214,16 @@ export default function HeroesScreen() {
         </>
       )}
 
-      {/* Modals de detalhe */}
-      <Modal
-        visible={selectedHero !== null}
-        title={selectedHero?.name}
-        onClose={() => setSelectedHero(null)}
-        fill
-      >
-        {selectedHero && <HeroDetail hero={selectedHero} />}
-      </Modal>
+      {/* Detalhe do herói com animação de flip */}
+      <HeroFlipDetail
+        hero={selectedHero}
+        heroPosition={selectedHero ? heroPosition(selectedHero) : null}
+        originLayout={selectedCardLayout}
+        onClose={() => {
+          setSelectedHero(null)
+          setSelectedCardLayout(null)
+        }}
+      />
 
       <Modal visible={showRoster} title="Time" onClose={() => setShowRoster(false)}>
         <RosterManager onClose={() => setShowRoster(false)} />
